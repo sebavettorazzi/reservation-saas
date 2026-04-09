@@ -1,13 +1,14 @@
-import prisma from "../prisma-client";
+import { prisma } from "@/lib/prisma";
 
 type Slot = {
   start: Date;
   end: Date;
+  staffId: string;
 };
 
 export async function getAvailableSlots(
   businessId: string,
-  serviceDuration: number,
+  serviceId: string,
   date: Date
 ): Promise<Slot[]> {
 
@@ -21,45 +22,71 @@ export async function getAvailableSlots(
   const endOfDay = new Date(date);
   endOfDay.setHours(closeHour, 0, 0, 0);
 
-  // 🔎 buscar turnos existentes
-  const appointments = await prisma.appointment.findMany({
-    where: {
-      businessId: businessId,
-      startTime: {
-        gte: startOfDay,
-        lt: endOfDay,
-      },
-      status: {
-        in: ["pending", "confirmed"],
-      },
-    },
-    select: {
-      startTime: true,
-      endTime: true,
-    },
+  // servicio
+  const service = await prisma.service.findUnique({
+    where: { id: serviceId }
   });
 
-  const slots: Slot[] = [];
-  let current = new Date(startOfDay);
+  if (!service) return [];
 
-  while (current < endOfDay) {
+  const serviceDuration = service.duration;
 
-    const slotEnd = new Date(current.getTime() + serviceDuration * 60000);
-
-    if (slotEnd > endOfDay) break;
-
-    const conflict = appointments.some(
-      (a) => current < a.endTime && slotEnd > a.startTime
-    );
-
-    if (!conflict) {
-      slots.push({
-        start: new Date(current),
-        end: slotEnd,
-      });
+  // staff que hacen ese servicio
+  const staffServices = await prisma.staffService.findMany({
+    where: {
+      serviceId: serviceId
+    },
+    select: {
+      staffId: true
     }
+  });
 
-    current = new Date(current.getTime() + slotInterval * 60000);
+  const staffIds = staffServices.map(s => s.staffId);
+
+  const slots: Slot[] = [];
+
+  for (const staffId of staffIds) {
+
+    const appointments = await prisma.appointment.findMany({
+      where: {
+        businessId,
+        staffId,
+        startTime: {
+          gte: startOfDay,
+          lt: endOfDay,
+        },
+        status: {
+          in: ["pending", "confirmed"],
+        },
+      },
+      select: {
+        startTime: true,
+        endTime: true,
+      },
+    });
+
+    let current = new Date(startOfDay);
+
+    while (current < endOfDay) {
+
+      const slotEnd = new Date(current.getTime() + serviceDuration * 60000);
+
+      if (slotEnd > endOfDay) break;
+
+      const conflict = appointments.some(
+        (a) => current < a.endTime && slotEnd > a.startTime
+      );
+
+      if (!conflict) {
+        slots.push({
+          start: new Date(current),
+          end: slotEnd,
+          staffId
+        });
+      }
+
+      current = new Date(current.getTime() + slotInterval * 60000);
+    }
   }
 
   return slots;

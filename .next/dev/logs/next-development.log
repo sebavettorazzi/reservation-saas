@@ -1,1 +1,11 @@
-[00:00:01.330] Server  LOG     ✓ Ready in 952ms
+[00:00:20.960] Server  LOG     ✓ Ready in 14.3s
+[02:19:11.715] Server  LOG     ○ Compiling / ...
+[02:19:22.702] Server  WARN    ⚠ Cross origin request detected from 172.20.10.4 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
+Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
+[02:19:22.746] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:19:22.860] Browser WARN    Image with src "http://172.20.10.4:3000/vercel.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[02:20:00.483] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:20:00.624] Browser WARN    Image with src "http://localhost:3000/vercel.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
+[02:20:41.203] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[02:26:23.020] Server  ERROR   ⨯ Detected default export in '[project]/src/app/api/appointments/route.ts'. Export a named export for each HTTP method instead.
+[02:26:23.023] Server  ERROR   ⨯ No HTTP methods exported in '[project]/src/app/api/appointments/route.ts'. Export a named export for each HTTP method.

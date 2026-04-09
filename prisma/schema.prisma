@@ -38,6 +38,8 @@ model Staff {
 
   business     Business      @relation(fields: [businessId], references: [id])
   appointments Appointment[]
+
+  services StaffService[]
 }
 
 model Service {
@@ -50,6 +52,8 @@ model Service {
 
   business     Business      @relation(fields: [businessId], references: [id])
   appointments Appointment[]
+
+  staff StaffService[]
 
   @@unique([name, businessId])
 }
@@ -84,4 +88,13 @@ model Appointment {
   staff    Staff?   @relation(fields: [staffId], references: [id])
 
   @@index([businessId, startTime])
+}
+model StaffService {
+  staffId   String
+  serviceId String
+
+  staff     Staff   @relation(fields: [staffId], references: [id])
+  service   Service @relation(fields: [serviceId], references: [id])
+
+  @@id([staffId, serviceId])
 }
