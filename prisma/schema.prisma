@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+model User {
+  id         String     @id @default(uuid())
+  name       String
+  email      String     @unique
+  password   String
+  createdAt  DateTime   @default(now())
+
+  businesses Business[]
+}
+
+model Business {
+  id        String   @id @default(uuid())
+  name      String
+  ownerId   String
+  createdAt DateTime @default(now())
+
+  owner      User        @relation(fields: [ownerId], references: [id])
+  services   Service[]
+  staff      Staff[]
+  customers  Customer[]
+  appointments Appointment[]
+
+  @@unique([name, ownerId])
+}
+
+model Staff {
+  id         String   @id @default(uuid())
+  name       String
+  businessId String
+
+  business     Business      @relation(fields: [businessId], references: [id])
+  appointments Appointment[]
+}
+
+model Service {
+  id          String   @id @default(uuid())
+  name        String
+  description String?
+  duration    Int
+  price       Float
+  businessId  String
+
+  business     Business      @relation(fields: [businessId], references: [id])
+  appointments Appointment[]
+
+  @@unique([name, businessId])
+}
+
+model Customer {
+  id         String   @id @default(uuid())
+  name       String
+  email      String?
+  phone      String?
+  businessId String
+
+  business     Business      @relation(fields: [businessId], references: [id])
+  appointments Appointment[]
+
+  @@unique([email, businessId])
+}
+
+model Appointment {
+  id         String   @id @default(uuid())
+  businessId String
+  serviceId  String
+  customerId String
+  staffId    String?
+
+  startTime  DateTime
+  endTime    DateTime
+  status     String   @default("pending")
+
+  business Business @relation(fields: [businessId], references: [id])
+  service  Service  @relation(fields: [serviceId], references: [id])
+  customer Customer @relation(fields: [customerId], references: [id])
+  staff    Staff?   @relation(fields: [staffId], references: [id])
+
+  @@index([businessId, startTime])
+}
