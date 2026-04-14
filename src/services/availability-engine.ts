@@ -1,10 +1,128 @@
-import { prisma } from "@/lib/prisma";
+import { prisma } from "../lib/prisma";
 
 type Slot = {
   start: Date;
   end: Date;
-  staffId: string;
+  availableStaff: {
+    id: string;
+    name: string;
+  }[];
+  bestStaffId: string | null;
 };
+
+// =========================
+// TIME HELPERS
+// =========================
+
+function getDayBoundsUTC(date: Date) {
+  const start = new Date(Date.UTC(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate(),
+    0, 0, 0
+  ));
+
+  const end = new Date(Date.UTC(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate(),
+    23, 59, 59, 999
+  ));
+
+  return { start, end };
+}
+
+// =========================
+// SLOT GENERATOR
+// =========================
+
+function generateTimeSlots(
+  date: Date,
+  duration: number,
+  openHour = 7,
+  closeHour = 22
+) {
+  const slots: { start: Date; end: Date }[] = [];
+
+  const start = new Date(Date.UTC(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate(),
+    openHour,
+    0,
+    0
+  ));
+
+  const endDay = new Date(Date.UTC(
+    date.getUTCFullYear(),
+    date.getUTCMonth(),
+    date.getUTCDate(),
+    closeHour,
+    0,
+    0
+  ));
+
+  while (start < endDay) {
+    const end = new Date(start);
+    end.setUTCMinutes(end.getUTCMinutes() + duration);
+
+    slots.push({ start: new Date(start), end });
+
+    start.setUTCMinutes(start.getUTCMinutes() + 30);
+  }
+
+  return slots;
+}
+
+// =========================
+// BUILD BUSY MAP (LEVEL 3 CORE)
+// =========================
+
+function buildBusyMap(appointments: any[]) {
+  const map = new Map<string, { start: Date; end: Date }[]>();
+
+  for (const a of appointments) {
+    if (!a.staffId) continue;
+
+    if (!map.has(a.staffId)) {
+      map.set(a.staffId, []);
+    }
+
+    map.get(a.staffId)!.push({
+      start: a.startTime,
+      end: a.endTime,
+    });
+  }
+
+  return map;
+}
+
+// =========================
+// CONFLICT CHECK O(1-ish)
+// =========================
+
+function isStaffBusy(
+  staffId: string,
+  slot: { start: Date; end: Date },
+  busyMap: Map<string, { start: Date; end: Date }[]>
+) {
+  const intervals = busyMap.get(staffId);
+  if (!intervals) return false;
+
+  for (const i of intervals) {
+    const overlap =
+      i.start < slot.end &&
+      i.end > slot.start;
+
+    if (overlap) return true;
+  }
+
+  return false;
+}
+
+// =========================
+// ENGINE
+// =========================
 
 export async function getAvailableSlots(
   businessId: string,
@@ -12,82 +130,62 @@ export async function getAvailableSlots(
   date: Date
 ): Promise<Slot[]> {
 
-  const openHour = 9;
-  const closeHour = 17;
-  const slotInterval = 30;
-
-  const startOfDay = new Date(date);
-  startOfDay.setHours(openHour, 0, 0, 0);
-
-  const endOfDay = new Date(date);
-  endOfDay.setHours(closeHour, 0, 0, 0);
-
-  // servicio
+  // 1. Service + staff
   const service = await prisma.service.findUnique({
-    where: { id: serviceId }
-  });
-
-  if (!service) return [];
-
-  const serviceDuration = service.duration;
-
-  // staff que hacen ese servicio
-  const staffServices = await prisma.staffService.findMany({
-    where: {
-      serviceId: serviceId
+    where: { id: serviceId },
+    include: {
+      staff: { include: { staff: true } },
     },
-    select: {
-      staffId: true
-    }
   });
 
-  const staffIds = staffServices.map(s => s.staffId);
+  if (!service) throw new Error("Service not found");
 
-  const slots: Slot[] = [];
+  const staff = service.staff.map((s) => s.staff);
 
-  for (const staffId of staffIds) {
+  // 2. Day bounds
+  const { start, end } = getDayBoundsUTC(date);
 
-    const appointments = await prisma.appointment.findMany({
-      where: {
-        businessId,
-        staffId,
-        startTime: {
-          gte: startOfDay,
-          lt: endOfDay,
-        },
-        status: {
-          in: ["pending", "confirmed"],
-        },
+  // 3. Appointments (only once)
+  const appointments = await prisma.appointment.findMany({
+    where: {
+      businessId,
+      startTime: {
+        gte: start,
+        lt: end,
       },
-      select: {
-        startTime: true,
-        endTime: true,
-      },
-    });
+    },
+  });
 
-    let current = new Date(startOfDay);
+  // 4. BUILD INDEX (🔥 KEY OPTIMIZATION)
+  const busyMap = buildBusyMap(appointments);
 
-    while (current < endOfDay) {
+  // 5. Slots
+  const slots = generateTimeSlots(date, service.duration);
 
-      const slotEnd = new Date(current.getTime() + serviceDuration * 60000);
+  const result: Slot[] = [];
 
-      if (slotEnd > endOfDay) break;
+  for (const slot of slots) {
 
-      const conflict = appointments.some(
-        (a) => current < a.endTime && slotEnd > a.startTime
-      );
+    const availableStaff = [];
 
-      if (!conflict) {
-        slots.push({
-          start: new Date(current),
-          end: slotEnd,
-          staffId
+    for (const s of staff) {
+      if (!isStaffBusy(s.id, slot, busyMap)) {
+        availableStaff.push({
+          id: s.id,
+          name: s.name,
         });
       }
-
-      current = new Date(current.getTime() + slotInterval * 60000);
     }
+
+    if (availableStaff.length === 0) continue;
+
+    result.push({
+      start: slot.start,
+      end: slot.end,
+      availableStaff,
+      bestStaffId: availableStaff[0]?.id ?? null,
+    });
   }
 
-  return slots;
+  return result;
 }

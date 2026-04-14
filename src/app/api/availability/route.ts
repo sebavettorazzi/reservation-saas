@@ -1,47 +1,42 @@
 import { NextResponse } from "next/server";
 import { getAvailableSlots } from "@/services/availability-engine";
-import { prisma } from "@/lib/prisma";
+import {
+  AvailabilityRequestSchema,
+} from "@/contracts/availability.contract";
 
 export async function GET(req: Request) {
   try {
-
     const { searchParams } = new URL(req.url);
 
-    const businessId = searchParams.get("businessId");
-    const serviceId = searchParams.get("serviceId");
-    const date = searchParams.get("date");
+    const raw = {
+      businessId: searchParams.get("businessId"),
+      serviceId: searchParams.get("serviceId"),
+      date: searchParams.get("date"),
+    };
 
-    if (!businessId || !serviceId || !date) {
+    const parsed = AvailabilityRequestSchema.safeParse(raw);
+
+    if (!parsed.success) {
       return NextResponse.json(
-        { error: "Missing parameters" },
+        { error: "Invalid request", details: parsed.error.flatten() },
         { status: 400 }
       );
     }
 
-    const service = await prisma.service.findUnique({
-      where: { id: serviceId }
-    });
+    const { businessId, serviceId, date } = parsed.data;
 
-    if (!service) {
-      return NextResponse.json(
-        { error: "Service not found" },
-        { status: 404 }
-      );
-    }
-
-    const slots = await getAvailableSlots(
+    const result = await getAvailableSlots(
       businessId,
-      service.duration,
+      serviceId,
       new Date(date)
     );
 
-    return NextResponse.json(slots);
-
-  } catch (error) {
-    console.error(error);
+    return NextResponse.json(result);
+  } catch (err: any) {
+    console.error("Availability error:", err);
 
     return NextResponse.json(
-      { error: "Error calculating availability" },
+      { error: err.message ?? "Internal error" },
       { status: 500 }
     );
   }

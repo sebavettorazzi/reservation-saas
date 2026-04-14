@@ -1,11 +1,58 @@
-[00:00:20.960] Server  LOG     ✓ Ready in 14.3s
-[02:19:11.715] Server  LOG     ○ Compiling / ...
-[02:19:22.702] Server  WARN    ⚠ Cross origin request detected from 172.20.10.4 to /_next/* resource. In a future major version of Next.js, you will need to explicitly configure "allowedDevOrigins" in next.config to allow this.
-Read more: https://nextjs.org/docs/app/api-reference/config/next-config-js/allowedDevOrigins
-[02:19:22.746] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[02:19:22.860] Browser WARN    Image with src "http://172.20.10.4:3000/vercel.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-[02:20:00.483] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[02:20:00.624] Browser WARN    Image with src "http://localhost:3000/vercel.svg" has either width or height modified, but not the other. If you use CSS to change the size of your image, also include the styles 'width: "auto"' or 'height: "auto"' to maintain the aspect ratio.
-[02:20:41.203] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
-[02:26:23.020] Server  ERROR   ⨯ Detected default export in '[project]/src/app/api/appointments/route.ts'. Export a named export for each HTTP method instead.
-[02:26:23.023] Server  ERROR   ⨯ No HTTP methods exported in '[project]/src/app/api/appointments/route.ts'. Export a named export for each HTTP method.
+[00:00:01.920] Server  LOG     ✓ Ready in 1458ms
+[00:00:52.458] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:30:56.511] Server  LOG     ✓ Compiled in 578ms
+[00:31:05.889] Server  LOG     ✓ Compiled in 111ms
+[00:31:14.149] Server  LOG     ✓ Compiled in 51ms
+[00:31:15.051] Browser ERROR   The final argument passed to %s changed size between renders. The order and size of this array must remain constant.
+
+Previous: %s
+Incoming: %s useEffect [Tue Apr 14 2026 15:08:43 GMT+0200 (hora de verano de Europa central), 8075c3f6-e71a-4042-a480-ba5d1fafa86c, e366c10c-53ad-4285-982f-8cdada962ee0] [Tue Apr 14 2026 15:08:43 GMT+0200 (hora de verano de Europa central)]
+[00:31:24.911] Server  LOG     ✓ Compiled in 95ms
+[00:31:38.079] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:36:18.271] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:37:07.786] Server  ERROR   ⨯ ./src/app/booking/page.tsx:1:1
+Module not found: Can't resolve './page.module.css'
+> 1 | import styles from "./page.module.css";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | export default function BookingPage() {
+  4 |   return (
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:37:07.787] Server  ERROR   ⨯ ./src/app/booking/page.tsx:1:1
+Module not found: Can't resolve './page.module.css'
+> 1 | import styles from "./page.module.css";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | export default function BookingPage() {
+  4 |   return (
+
+
+
+https://nextjs.org/docs/messages/module-not-found
+
+
+[00:37:07.818] Server  LOG     ✓ Compiled in 35ms
+[00:37:08.048] Browser ERROR   ./src/app/booking/page.tsx:1:1
+Module not found: Can't resolve './page.module.css'
+> 1 | import styles from "./page.module.css";
+    | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  2 |
+  3 | export default function BookingPage() {
+  4 |   return (
+
+https://nextjs.org/docs/messages/module-not-found
+[00:37:29.511] Server  LOG     ✓ Compiled in 35ms
+[00:37:29.704] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:38:11.879] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:39:01.380] Server  LOG     ✓ Compiled in 25ms
+[00:39:27.989] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:39:31.962] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:40:22.081] Server  LOG     ✓ Compiled in 41ms
+[00:40:57.544] Browser INFO    %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold
+[00:51:22.165] Server  LOG     ✓ Compiled in 64ms
+[00:53:20.999] Server  LOG     ✓ Compiled in 54ms
