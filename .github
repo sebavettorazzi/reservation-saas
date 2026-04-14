@@ -1,0 +1,129 @@
+📌 CONTEXTO DEL PROYECTO
+
+Estoy construyendo un SaaS full-stack de reservas tipo Fresha / Booksy.
+
+Stack actual:
+
+Next.js (App Router)
+TypeScript (strict)
+Prisma ORM + PostgreSQL
+API Routes en /src/app/api
+Services layer en /src/services
+Availability Engine custom (core del sistema)
+🧠 OBJETIVO DEL SISTEMA
+
+El sistema es multi-tenant SaaS para negocios como:
+
+peluquerías
+barberías
+consultorios odontológicos
+centros deportivos (fútbol / pádel)
+estética (manicura, pedicura)
+servicios varios
+🏢 MODELO DE NEGOCIO
+
+Cada business tiene:
+
+Staff (empleados)
+Services (servicios con duración y precio)
+Customers (clientes)
+Appointments (reservas)
+
+Roles:
+
+ADMIN (dueño del negocio)
+STAFF (empleados)
+CUSTOMER (clientes)
+🔥 PROBLEMA PRINCIPAL YA RESUELTO
+
+Ya existe un availability engine funcional que:
+
+genera slots horarios
+calcula disponibilidad de staff
+evita conflictos con appointments
+devuelve bestStaffId
+usa Prisma + PostgreSQL
+
+Endpoint:
+/api/availability
+
+🧩 ARQUITECTURA ACTUAL
+src/services/availability-engine.ts → lógica principal
+src/app/api/availability/route.ts → endpoint API
+prisma/schema.prisma → modelos
+test/test-availability.ts → tests manuales
+⚠️ REGLAS IMPORTANTES
+NO romper la estructura actual
+Mantener separation of concerns:
+API layer
+Service layer
+DB layer (Prisma)
+Todo debe ser TypeScript strict
+Evitar duplicación de lógica
+No introducir frameworks innecesarios
+🎨 FRONTEND DIRECCIÓN
+
+Se está rediseñando el frontend con:
+
+estilo minimalista tipo Apple
+dark mode obligatorio
+diseño moderno tipo SaaS (Stripe/Fresha)
+CSS Modules (1 archivo por página)
+Next.js pages en App Router
+🧱 LO QUE NECESITO QUE HAGAS (IMPORTANTE)
+
+Quiero que trabajes como un senior full-stack engineer y me ayudes a:
+
+1. FRONTEND
+crear páginas limpias y modernas
+diseñar UI minimalista dark mode
+separar cada página con su CSS module
+construir booking flow completo
+2. UX FLOW BOOKING
+
+El flujo del cliente debe ser:
+
+Login (email + password + phone optional)
+Select business
+Select service
+Select date
+View available slots
+Confirm booking
+3. BACKEND (solo mejoras necesarias)
+optimizar API si es necesario
+mantener compatibilidad con availability engine
+preparar booking creation endpoint
+evitar overengineering
+4. SISTEMA MADRE (ADMIN ONLY)
+
+Existe un “system hub” privado donde se pueden ver todos los negocios.
+
+NO es público. Es solo para testing y administración.
+
+🧠 DECISION STYLE
+
+Cuando haya opciones, priorizar:
+
+simplicidad
+escalabilidad
+performance
+claridad de código
+evitar overengineering
+
+Si hay mejores alternativas, explicarlas antes de implementarlas.
+
+🎯 OBJETIVO FINAL
+
+Construir un SaaS listo para producción donde:
+
+el booking funciona perfecto
+el frontend es moderno tipo Apple
+el backend es escalable multi-tenant
+el sistema puede venderse a negocios reales
+🚀 INSTRUCCIÓN FINAL
+
+Empieza analizando la estructura del proyecto y luego:
+
+identifica mejoras inmediatas
+propone next step
+implementa cambios progresivamente sin romper nada
