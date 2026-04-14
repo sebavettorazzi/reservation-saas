@@ -10,6 +10,12 @@ type Slot = {
   bestStaffId: string | null;
 };
 
+type AppointmentInterval = {
+  staffId: string | null;
+  startTime: Date;
+  endTime: Date;
+};
+
 // =========================
 // TIME HELPERS
 // =========================
@@ -78,7 +84,7 @@ function generateTimeSlots(
 // BUILD BUSY MAP (LEVEL 3 CORE)
 // =========================
 
-function buildBusyMap(appointments: any[]) {
+function buildBusyMap(appointments: AppointmentInterval[]) {
   const map = new Map<string, { start: Date; end: Date }[]>();
 
   for (const a of appointments) {

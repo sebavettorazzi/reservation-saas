@@ -20,11 +20,15 @@ type Params = {
 
 export function useAvailability({ businessId, serviceId, date }: Params) {
   const [data, setData] = useState<AvailabilitySlot[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (!businessId || !serviceId || !date) return;
+    if (!businessId || !serviceId || !date) {
+      setData([]);
+      setLoading(false);
+      return;
+    }
 
     const fetchData = async () => {
       try {
@@ -42,8 +46,12 @@ export function useAvailability({ businessId, serviceId, date }: Params) {
 
         const json = await res.json();
         setData(json);
-      } catch (e: any) {
-        setError(e.message);
+      } catch (error) {
+        setError(
+          error instanceof Error
+            ? error.message
+            : "Error loading availability"
+        );
       } finally {
         setLoading(false);
       }

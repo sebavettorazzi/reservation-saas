@@ -18,7 +18,12 @@ export default function SlotsList({
   staffId,
   businessId,
   serviceId,
-}: any) {
+}: {
+  date: Date;
+  staffId: string | null;
+  businessId: string;
+  serviceId: string;
+}) {
   const [slots, setSlots] = useState<Slot[]>([]);
   const [loading, setLoading] = useState(false);
 
@@ -37,7 +42,7 @@ export default function SlotsList({
     }
 
     fetchSlots();
-  }, [date]);
+  }, [businessId, date, serviceId]);
 
   const filtered = slots.filter((slot) => {
     if (!staffId) return true;

@@ -32,11 +32,14 @@ export async function GET(req: Request) {
     );
 
     return NextResponse.json(result);
-  } catch (err: any) {
-    console.error("Availability error:", err);
+  } catch (error) {
+    console.error("Availability error:", error);
 
     return NextResponse.json(
-      { error: err.message ?? "Internal error" },
+      {
+        error:
+          error instanceof Error ? error.message : "Internal error",
+      },
       { status: 500 }
     );
   }

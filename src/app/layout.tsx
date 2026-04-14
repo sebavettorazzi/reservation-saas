@@ -1,10 +1,12 @@
+import "./globals.css";
+
 export default function RootLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" className="dark">
+    <html lang="es" className="dark">
       <body>{children}</body>
     </html>
   );

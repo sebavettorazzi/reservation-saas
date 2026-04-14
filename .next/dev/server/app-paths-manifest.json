@@ -1,5 +1,7 @@
 {
   "/api/appointments/route": "app/api/appointments/route.js",
   "/api/availability/route": "app/api/availability/route.js",
+  "/api/businesses/[businessId]/services/route": "app/api/businesses/[businessId]/services/route.js",
+  "/api/businesses/route": "app/api/businesses/route.js",
   "/booking/page": "app/booking/page.js"
 }

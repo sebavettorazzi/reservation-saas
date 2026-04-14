@@ -1,0 +1,269 @@
+.page {
+  min-height: 100vh;
+  padding: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background:
+    radial-gradient(circle at top left, rgba(251, 146, 60, 0.16), transparent 26%),
+    radial-gradient(circle at bottom right, rgba(56, 189, 248, 0.16), transparent 26%),
+    linear-gradient(180deg, #040711 0%, #090e1f 100%);
+}
+
+.shell {
+  width: min(1180px, 100%);
+  padding: 28px;
+  border-radius: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(8, 12, 24, 0.82);
+  box-shadow: 0 30px 100px rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(18px);
+}
+
+.nav {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.brandMark {
+  width: 14px;
+  height: 14px;
+  border-radius: 999px;
+  background: linear-gradient(135deg, #fb7185, #38bdf8);
+  box-shadow: 0 0 30px rgba(56, 189, 248, 0.55);
+}
+
+.brandText {
+  display: grid;
+  gap: 2px;
+}
+
+.brandText strong {
+  font-size: 14px;
+  letter-spacing: 0.04em;
+}
+
+.brandText span {
+  font-size: 12px;
+  color: rgba(226, 232, 240, 0.64);
+}
+
+.navActions {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.ghostLink,
+.primaryLink {
+  padding: 12px 16px;
+  border-radius: 999px;
+  text-decoration: none;
+  font-size: 14px;
+  transition:
+    transform 160ms ease,
+    opacity 160ms ease;
+}
+
+.ghostLink {
+  color: rgba(226, 232, 240, 0.86);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.primaryLink {
+  color: #fff7ed;
+  background: linear-gradient(135deg, #f97316, #fb7185);
+}
+
+.ghostLink:hover,
+.primaryLink:hover {
+  transform: translateY(-1px);
+}
+
+.hero {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.2fr) minmax(320px, 0.8fr);
+  gap: 20px;
+}
+
+.heroMain,
+.heroPanel,
+.featureCard {
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.heroMain {
+  padding: 36px;
+}
+
+.eyebrow {
+  margin: 0 0 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 11px;
+  color: #8ab4ff;
+}
+
+.headline {
+  margin: 0;
+  font-size: clamp(44px, 7vw, 82px);
+  line-height: 0.95;
+  letter-spacing: -0.06em;
+  max-width: 10ch;
+}
+
+.subcopy {
+  margin: 18px 0 0;
+  max-width: 58ch;
+  color: rgba(226, 232, 240, 0.72);
+  line-height: 1.7;
+}
+
+.ctaRow {
+  margin-top: 28px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.statRow {
+  margin-top: 28px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.statCard {
+  padding: 18px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.statCard strong {
+  display: block;
+  font-size: 30px;
+  letter-spacing: -0.05em;
+}
+
+.statCard span {
+  display: block;
+  margin-top: 8px;
+  color: rgba(226, 232, 240, 0.62);
+  font-size: 13px;
+}
+
+.heroPanel {
+  padding: 26px;
+  display: grid;
+  gap: 14px;
+}
+
+.panelLabel {
+  margin: 0;
+  text-transform: uppercase;
+  letter-spacing: 0.16em;
+  font-size: 11px;
+  color: rgba(191, 219, 254, 0.7);
+}
+
+.panelCard {
+  padding: 18px;
+  border-radius: 24px;
+  background: linear-gradient(180deg, rgba(17, 24, 39, 0.88), rgba(12, 18, 32, 0.88));
+}
+
+.panelCard h2 {
+  margin: 8px 0;
+  font-size: 22px;
+  letter-spacing: -0.04em;
+}
+
+.panelCard p {
+  margin: 0;
+  color: rgba(226, 232, 240, 0.72);
+  line-height: 1.6;
+}
+
+.panelList {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 10px;
+}
+
+.panelList li {
+  padding: 14px 16px;
+  border-radius: 18px;
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(226, 232, 240, 0.8);
+}
+
+.features {
+  margin-top: 20px;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 20px;
+}
+
+.featureCard {
+  padding: 24px;
+}
+
+.featureCard h3 {
+  margin: 10px 0 8px;
+  font-size: 22px;
+  letter-spacing: -0.04em;
+}
+
+.featureCard p {
+  margin: 0;
+  color: rgba(226, 232, 240, 0.7);
+  line-height: 1.65;
+}
+
+@media (max-width: 980px) {
+  .hero,
+  .features {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 18px;
+  }
+
+  .shell,
+  .heroMain,
+  .heroPanel,
+  .featureCard {
+    border-radius: 26px;
+  }
+
+  .heroMain,
+  .heroPanel,
+  .featureCard {
+    padding: 22px;
+  }
+
+  .nav {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .statRow {
+    grid-template-columns: 1fr;
+  }
+}

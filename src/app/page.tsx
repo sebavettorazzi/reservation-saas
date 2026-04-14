@@ -1,65 +1,112 @@
-import Image from "next/image";
+import Link from "next/link";
+import styles from "./page.module.css";
 
 export default function Home() {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
+    <main className={styles.page}>
+      <div className={styles.shell}>
+        <nav className={styles.nav}>
+          <div className={styles.brand}>
+            <span className={styles.brandMark} />
+            <div className={styles.brandText}>
+              <strong>Reservation Cloud</strong>
+              <span>Multi-tenant booking SaaS</span>
+            </div>
+          </div>
+
+          <div className={styles.navActions}>
+            <Link href="/booking" className={styles.ghostLink}>
+              Open booking flow
+            </Link>
+            <Link href="/api/businesses" className={styles.primaryLink}>
+              View catalog API
+            </Link>
+          </div>
+        </nav>
+
+        <section className={styles.hero}>
+          <div className={styles.heroMain}>
+            <p className={styles.eyebrow}>Production-minded reservation stack</p>
+            <h1 className={styles.headline}>Bookings that feel premium from day one.</h1>
+            <p className={styles.subcopy}>
+              Base multi-tenant para peluquerías, barberías, estética, deporte y
+              consultorios. Frontend dark mode, availability engine custom y arquitectura
+              preparada para evolucionar sin sobrecarga innecesaria.
+            </p>
+
+            <div className={styles.ctaRow}>
+              <Link href="/booking" className={styles.primaryLink}>
+                Probar booking
+              </Link>
+              <Link href="/api/availability" className={styles.ghostLink}>
+                API availability
+              </Link>
+            </div>
+
+            <div className={styles.statRow}>
+              <div className={styles.statCard}>
+                <strong>Multi-tenant</strong>
+                <span>Negocios, servicios, staff y clientes separados por tenant.</span>
+              </div>
+              <div className={styles.statCard}>
+                <strong>Custom engine</strong>
+                <span>Slots reales, staff recomendado y prevención de conflictos.</span>
+              </div>
+              <div className={styles.statCard}>
+                <strong>App Router</strong>
+                <span>Frontend y API routes alineados con la estructura actual.</span>
+              </div>
+            </div>
+          </div>
+
+          <aside className={styles.heroPanel}>
+            <p className={styles.panelLabel}>Now shipping</p>
+            <div className={styles.panelCard}>
+              <p className={styles.panelLabel}>Booking flow</p>
+              <h2>Negocio, servicio, fecha, slot y confirmación conectados</h2>
+              <p>
+                La base pública ya no depende de IDs hardcodeados del seed y queda lista
+                para sumar auth de clientes sin rehacer pantallas.
+              </p>
+            </div>
+
+            <ul className={styles.panelList}>
+              <li>Catálogo público de negocios y servicios</li>
+              <li>Reserva validada contra disponibilidad real</li>
+              <li>UI dark mode con CSS Modules por página</li>
+            </ul>
+          </aside>
+        </section>
+
+        <section className={styles.features}>
+          <article className={styles.featureCard}>
+            <p className={styles.panelLabel}>Frontend</p>
+            <h3>Experiencia clara</h3>
+            <p>
+              Interfaz compacta, moderna y preparada para móvil, con foco en legibilidad,
+              velocidad y una sensación más premium que un CRUD genérico.
+            </p>
+          </article>
+
+          <article className={styles.featureCard}>
+            <p className={styles.panelLabel}>Backend</p>
+            <h3>Validación sin duplicación</h3>
+            <p>
+              El endpoint de creación reutiliza el availability engine para comprobar que
+              el slot sigue vivo antes de confirmar la cita.
+            </p>
+          </article>
+
+          <article className={styles.featureCard}>
+            <p className={styles.panelLabel}>Next step</p>
+            <h3>Customer auth real</h3>
+            <p>
+              El siguiente bloque lógico es añadir autenticación de clientes y proteger
+              el system hub privado para administración y testing interno.
+            </p>
+          </article>
+        </section>
+      </div>
+    </main>
   );
 }
