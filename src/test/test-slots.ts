@@ -2,14 +2,14 @@ import { getAvailableSlots } from "../services/availability-engine";
 
 async function run() {
   const businessId = "test-business-id"; // usa uno real de tu DB
-  const serviceDuration = 60;
+  const serviceId = "test-service-id"; // usa uno real de tu DB
 
   const date = new Date();
-  date.setHours(0,0,0,0);
+  date.setHours(0, 0, 0, 0);
 
   const slots = await getAvailableSlots(
     businessId,
-    serviceDuration,
+    serviceId,
     date
   );
 

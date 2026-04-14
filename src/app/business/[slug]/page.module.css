@@ -1,0 +1,451 @@
+.page {
+  min-height: 100vh;
+  padding: 28px;
+  background:
+    radial-gradient(circle at top left, rgba(74, 222, 128, 0.18), transparent 26%),
+    radial-gradient(circle at bottom right, rgba(34, 197, 94, 0.12), transparent 24%),
+    linear-gradient(180deg, #04110b 0%, #081712 100%);
+}
+
+.loadingPage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(180deg, #04110b 0%, #081712 100%);
+}
+
+.errorState {
+  max-width: 420px;
+  padding: 28px;
+  border-radius: 28px;
+  background: rgba(9, 24, 18, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+
+.hero {
+  max-width: 1320px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: minmax(0, 1.15fr) minmax(280px, 0.85fr);
+  gap: 20px;
+}
+
+.heroCopy,
+.heroPanel,
+.panel,
+.bookingCard {
+  border-radius: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(7, 18, 14, 0.86);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(18px);
+}
+
+.heroCopy,
+.heroPanel,
+.panel,
+.bookingCard {
+  padding: 24px;
+}
+
+.heroCopy h1 {
+  margin: 0;
+  font-size: clamp(44px, 8vw, 84px);
+  line-height: 0.96;
+  letter-spacing: -0.06em;
+}
+
+.eyebrow,
+.panelEyebrow,
+.panelLabel {
+  margin: 0 0 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 11px;
+}
+
+.eyebrow {
+  color: #86efac;
+}
+
+.panelEyebrow,
+.panelLabel {
+  color: rgba(167, 243, 208, 0.7);
+}
+
+.lead {
+  margin: 18px 0 0;
+  font-size: 20px;
+  color: rgba(236, 253, 245, 0.86);
+}
+
+.description,
+.heroPanel p {
+  margin: 14px 0 0;
+  max-width: 58ch;
+  line-height: 1.7;
+  color: rgba(220, 252, 231, 0.72);
+}
+
+.heroPanel h2 {
+  margin: 0;
+  font-size: 30px;
+  letter-spacing: -0.04em;
+}
+
+.heroMeta {
+  margin-top: 24px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.heroMeta span,
+.planBadge,
+.serviceMeta span,
+.filterChip {
+  padding: 10px 14px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 13px;
+  color: rgba(220, 252, 231, 0.82);
+}
+
+.layout {
+  max-width: 1320px;
+  margin: 20px auto 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 430px;
+  gap: 20px;
+}
+
+.infoColumn {
+  display: grid;
+  gap: 20px;
+}
+
+.bookingPanel {
+  position: sticky;
+  top: 20px;
+  align-self: start;
+}
+
+.panelHeader,
+.selectorRow,
+.summaryCard div,
+.slotToolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.panel h3,
+.bookingCard h3 {
+  margin: 0;
+  font-size: 24px;
+  letter-spacing: -0.03em;
+}
+
+.compactCourtGrid,
+.serviceGrid {
+  margin-top: 16px;
+  display: grid;
+  gap: 12px;
+}
+
+.compactCourtGrid {
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+}
+
+.compactCourtCard,
+.serviceCard,
+.slotCard,
+.summaryCard,
+.successCard {
+  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.compactCourtCard {
+  padding: 14px 16px;
+}
+
+.compactCourtCard strong,
+.serviceCard strong,
+.slotCard strong {
+  display: block;
+  font-size: 16px;
+}
+
+.compactCourtCard span,
+.serviceCard span,
+.slotCard span {
+  display: block;
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.55;
+  color: rgba(220, 252, 231, 0.7);
+}
+
+.serviceGrid {
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.serviceCard,
+.slotCard {
+  text-align: left;
+  padding: 18px;
+  color: inherit;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.serviceCard:hover,
+.slotCard:hover,
+.filterChip:hover,
+.moreButton:hover {
+  transform: translateY(-1px);
+}
+
+.serviceCard:hover,
+.slotCard:hover {
+  border-color: rgba(134, 239, 172, 0.28);
+}
+
+.serviceCardActive,
+.slotCardActive,
+.filterChipActive {
+  border-color: rgba(134, 239, 172, 0.38);
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.16), rgba(21, 128, 61, 0.05));
+}
+
+.serviceMeta {
+  margin-top: 14px;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.formGrid {
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field span,
+.selectorRow h4,
+.summaryCard span {
+  font-size: 13px;
+  color: rgba(220, 252, 231, 0.72);
+}
+
+.field input {
+  width: 100%;
+  padding: 14px 16px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #f0fdf4;
+  outline: none;
+}
+
+.field input:focus {
+  border-color: rgba(134, 239, 172, 0.38);
+  box-shadow: 0 0 0 4px rgba(134, 239, 172, 0.12);
+}
+
+.slotSection {
+  margin-top: 20px;
+}
+
+.subtle {
+  color: rgba(220, 252, 231, 0.62);
+  line-height: 1.6;
+}
+
+.filterRow {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.filterChip {
+  border: 1px solid transparent;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease,
+    background 160ms ease;
+}
+
+.slotGrid {
+  margin-top: 16px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.slotCard {
+  padding: 14px;
+}
+
+.slotCard strong {
+  font-size: 15px;
+}
+
+.slotCard span {
+  font-size: 12px;
+}
+
+.moreButton {
+  width: 100%;
+  margin-top: 12px;
+  min-height: 46px;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #f0fdf4;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    border-color 160ms ease;
+}
+
+.moreButton:hover {
+  border-color: rgba(134, 239, 172, 0.28);
+}
+
+.summaryCard,
+.successCard {
+  margin-top: 20px;
+  padding: 18px;
+}
+
+.summaryCard {
+  display: grid;
+  gap: 12px;
+}
+
+.summaryCard strong {
+  font-size: 15px;
+}
+
+.successCard {
+  background: linear-gradient(180deg, rgba(34, 197, 94, 0.18), rgba(21, 128, 61, 0.06));
+  border-color: rgba(134, 239, 172, 0.24);
+}
+
+.successCard h4 {
+  margin: 0 0 8px;
+  font-size: 22px;
+}
+
+.successCard p {
+  margin: 0;
+  line-height: 1.6;
+  color: rgba(240, 253, 244, 0.82);
+}
+
+.successCard p + p {
+  margin-top: 6px;
+}
+
+.confirmButton,
+.secondaryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+}
+
+.confirmButton {
+  width: 100%;
+  margin-top: 20px;
+  min-height: 54px;
+  border: 0;
+  border-radius: 20px;
+  background: linear-gradient(135deg, #86efac, #4ade80);
+  color: #052e16;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    opacity 160ms ease;
+}
+
+.confirmButton:hover:enabled {
+  transform: translateY(-1px);
+}
+
+.confirmButton:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.secondaryLink {
+  min-height: 48px;
+  padding: 0 18px;
+  border-radius: 999px;
+  font-weight: 600;
+  color: #f0fdf4;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.error {
+  margin: 18px 0 0;
+  padding: 12px 14px;
+  border-radius: 18px;
+  background: rgba(220, 38, 38, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.22);
+  color: #fecaca;
+}
+
+@media (max-width: 1080px) {
+  .hero,
+  .layout {
+    grid-template-columns: 1fr;
+  }
+
+  .bookingPanel {
+    position: static;
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 18px;
+  }
+
+  .heroCopy,
+  .heroPanel,
+  .panel,
+  .bookingCard {
+    padding: 20px;
+    border-radius: 26px;
+  }
+
+  .panelHeader,
+  .selectorRow,
+  .slotToolbar,
+  .summaryCard div {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .slotGrid {
+    grid-template-columns: 1fr;
+  }
+}

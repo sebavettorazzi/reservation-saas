@@ -18,8 +18,8 @@ export default function Home() {
             <Link href="/booking" className={styles.ghostLink}>
               Open booking flow
             </Link>
-            <Link href="/api/businesses" className={styles.primaryLink}>
-              View catalog API
+            <Link href="/business/2-de-abril" className={styles.primaryLink}>
+              Demo 2 de Abril
             </Link>
           </div>
         </nav>
@@ -29,7 +29,7 @@ export default function Home() {
             <p className={styles.eyebrow}>Production-minded reservation stack</p>
             <h1 className={styles.headline}>Bookings that feel premium from day one.</h1>
             <p className={styles.subcopy}>
-              Base multi-tenant para peluquerías, barberías, estética, deporte y
+              Base multi-tenant para peluquerias, barberias, estetica, deporte y
               consultorios. Frontend dark mode, availability engine custom y arquitectura
               preparada para evolucionar sin sobrecarga innecesaria.
             </p>
@@ -38,8 +38,8 @@ export default function Home() {
               <Link href="/booking" className={styles.primaryLink}>
                 Probar booking
               </Link>
-              <Link href="/api/availability" className={styles.ghostLink}>
-                API availability
+              <Link href="/business/2-de-abril" className={styles.ghostLink}>
+                Ver demo deportiva
               </Link>
             </div>
 
@@ -50,11 +50,11 @@ export default function Home() {
               </div>
               <div className={styles.statCard}>
                 <strong>Custom engine</strong>
-                <span>Slots reales, staff recomendado y prevención de conflictos.</span>
+                <span>Slots reales, staff recomendado y prevencion de conflictos.</span>
               </div>
               <div className={styles.statCard}>
-                <strong>App Router</strong>
-                <span>Frontend y API routes alineados con la estructura actual.</span>
+                <strong>Templates</strong>
+                <span>Salon premium y complejo deportivo sobre la misma codebase.</span>
               </div>
             </div>
           </div>
@@ -62,18 +62,18 @@ export default function Home() {
           <aside className={styles.heroPanel}>
             <p className={styles.panelLabel}>Now shipping</p>
             <div className={styles.panelCard}>
-              <p className={styles.panelLabel}>Booking flow</p>
-              <h2>Negocio, servicio, fecha, slot y confirmación conectados</h2>
+              <p className={styles.panelLabel}>Sports tenant</p>
+              <h2>2 de Abril ya tiene pagina publica y panel interno</h2>
               <p>
-                La base pública ya no depende de IDs hardcodeados del seed y queda lista
-                para sumar auth de clientes sin rehacer pantallas.
+                El tenant deportivo usa la misma arquitectura del SaaS, con branding
+                propio, reservas de canchas y vista operativa para el complejo.
               </p>
             </div>
 
             <ul className={styles.panelList}>
-              <li>Catálogo público de negocios y servicios</li>
-              <li>Reserva validada contra disponibilidad real</li>
-              <li>UI dark mode con CSS Modules por página</li>
+              <li>Catalogo multi-tenant con slug, plan y branding base</li>
+              <li>Booking publico por negocio sin pasar por el sistema madre</li>
+              <li>Panel interno y premium fuera de la navegacion publica</li>
             </ul>
           </aside>
         </section>
@@ -81,28 +81,28 @@ export default function Home() {
         <section className={styles.features}>
           <article className={styles.featureCard}>
             <p className={styles.panelLabel}>Frontend</p>
-            <h3>Experiencia clara</h3>
+            <h3>Experiencia por rubro</h3>
             <p>
-              Interfaz compacta, moderna y preparada para móvil, con foco en legibilidad,
-              velocidad y una sensación más premium que un CRUD genérico.
+              La barberia mantiene un look premium y 2 de Abril ya tiene una interfaz
+              deportiva propia, sin duplicar proyecto ni romper la arquitectura central.
             </p>
           </article>
 
           <article className={styles.featureCard}>
             <p className={styles.panelLabel}>Backend</p>
-            <h3>Validación sin duplicación</h3>
+            <h3>Planes listos para crecer</h3>
             <p>
-              El endpoint de creación reutiliza el availability engine para comprobar que
-              el slot sigue vivo antes de confirmar la cita.
+              Cada negocio ya soporta `BASE` o `PREMIUM`, una buena base para que el
+              system hub active recordatorios y automatizaciones mas adelante.
             </p>
           </article>
 
           <article className={styles.featureCard}>
             <p className={styles.panelLabel}>Next step</p>
-            <h3>Customer auth real</h3>
+            <h3>System hub privado</h3>
             <p>
-              El siguiente bloque lógico es añadir autenticación de clientes y proteger
-              el system hub privado para administración y testing interno.
+              El siguiente bloque logico es tu panel madre para ver tenants, cambiar plan,
+              activar premium y gestionar accesos internos por negocio.
             </p>
           </article>
         </section>

@@ -6,6 +6,19 @@ datasource db {
   provider = "postgresql"
 }
 
+enum BusinessCategory {
+  GENERAL
+  SALON
+  SPORTS
+  DENTAL
+  BEAUTY
+}
+
+enum SubscriptionPlan {
+  BASE
+  PREMIUM
+}
+
 model User {
   id         String     @id @default(uuid())
   name       String
@@ -17,16 +30,22 @@ model User {
 }
 
 model Business {
-  id        String   @id @default(uuid())
-  name      String
-  ownerId   String
-  createdAt DateTime @default(now())
+  id          String           @id @default(uuid())
+  name        String
+  slug        String?          @unique
+  category    BusinessCategory @default(GENERAL)
+  plan        SubscriptionPlan @default(BASE)
+  tagline     String?
+  description String?
+  ownerId     String
+  createdAt   DateTime         @default(now())
 
   owner      User        @relation(fields: [ownerId], references: [id])
   services   Service[]
   staff      Staff[]
   customers  Customer[]
   appointments Appointment[]
+  expenses   Expense[]
 
   @@unique([name, ownerId])
 }
@@ -89,6 +108,22 @@ model Appointment {
 
   @@index([businessId, startTime])
 }
+
+model Expense {
+  id          String   @id @default(uuid())
+  businessId  String
+  title       String
+  category    String?
+  amount      Float
+  notes       String?
+  expenseDate DateTime
+  createdAt   DateTime @default(now())
+
+  business Business @relation(fields: [businessId], references: [id])
+
+  @@index([businessId, expenseDate])
+}
+
 model StaffService {
   staffId   String
   serviceId String

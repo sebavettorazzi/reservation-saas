@@ -1,0 +1,410 @@
+.page {
+  min-height: 100vh;
+  padding: 28px;
+  background:
+    radial-gradient(circle at top left, rgba(249, 115, 22, 0.14), transparent 26%),
+    radial-gradient(circle at bottom right, rgba(248, 113, 113, 0.12), transparent 24%),
+    linear-gradient(180deg, #140908 0%, #1a0d0d 100%);
+}
+
+.loadingPage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(180deg, #140908 0%, #1a0d0d 100%);
+}
+
+.errorState,
+.lockedShell,
+.hero,
+.statCard,
+.mainPanel,
+.sideCard,
+.sectionCard,
+.highlightCard {
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(24, 11, 11, 0.84);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(18px);
+}
+
+.errorState,
+.lockedShell {
+  max-width: 560px;
+  padding: 32px;
+  text-align: center;
+}
+
+.hero {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 28px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.eyebrow,
+.sectionEyebrow {
+  margin: 0 0 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 11px;
+  color: #fdba74;
+}
+
+.hero h1,
+.lockedShell h1 {
+  margin: 0;
+  font-size: clamp(40px, 7vw, 72px);
+  line-height: 0.98;
+  letter-spacing: -0.06em;
+}
+
+.lead {
+  margin: 16px 0 0;
+  max-width: 58ch;
+  line-height: 1.7;
+  color: rgba(254, 242, 242, 0.76);
+}
+
+.heroActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.monthPicker {
+  display: grid;
+  gap: 8px;
+}
+
+.monthPicker span {
+  font-size: 12px;
+  color: rgba(254, 242, 242, 0.68);
+}
+
+.monthPicker input,
+.primaryLink,
+.secondaryLink,
+.primaryButton {
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: 999px;
+}
+
+.monthPicker input {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff7ed;
+}
+
+.primaryLink,
+.secondaryLink,
+.primaryButton {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-weight: 700;
+}
+
+.primaryLink,
+.primaryButton {
+  border: 0;
+  color: #431407;
+  background: linear-gradient(135deg, #fb923c, #f97316);
+}
+
+.secondaryLink {
+  color: #fff7ed;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.statsGrid {
+  max-width: 1320px;
+  margin: 20px auto 0;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.statCard {
+  padding: 20px;
+}
+
+.statCard span,
+.metricCopy span,
+.expenseCard span,
+.field span {
+  font-size: 12px;
+  color: rgba(254, 242, 242, 0.66);
+}
+
+.statCard strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 30px;
+  letter-spacing: -0.05em;
+}
+
+.statCard p {
+  margin: 10px 0 0;
+  line-height: 1.6;
+  color: rgba(254, 242, 242, 0.74);
+}
+
+.layout {
+  max-width: 1320px;
+  margin: 20px auto 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 390px;
+  gap: 20px;
+}
+
+.mainPanel,
+.sideCard,
+.sectionCard {
+  padding: 24px;
+}
+
+.sidePanel {
+  display: grid;
+  gap: 20px;
+  align-self: start;
+}
+
+.highlightGrid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.highlightCard {
+  padding: 20px;
+}
+
+.highlightCard span {
+  font-size: 12px;
+  color: rgba(254, 242, 242, 0.64);
+}
+
+.highlightCard strong {
+  display: block;
+  margin-top: 10px;
+  font-size: 22px;
+}
+
+.highlightCard p {
+  margin: 8px 0 0;
+  line-height: 1.6;
+  color: rgba(254, 242, 242, 0.74);
+}
+
+.sectionCard {
+  margin-top: 20px;
+}
+
+.sectionHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.sectionHeader h2 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: -0.04em;
+}
+
+.metricList,
+.expenseList,
+.formGrid {
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.metricRow,
+.metricRowCompact,
+.expenseCard {
+  display: grid;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.metricRow,
+.metricRowCompact {
+  grid-template-columns: minmax(0, 180px) 1fr auto;
+}
+
+.metricCopy strong {
+  display: block;
+  font-size: 15px;
+}
+
+.metricBarShell {
+  width: 100%;
+  height: 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.06);
+  overflow: hidden;
+}
+
+.metricBar,
+.metricBarBlue,
+.metricBarRed {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.metricBar {
+  background: linear-gradient(135deg, #fb923c, #f97316);
+}
+
+.metricBarBlue {
+  background: linear-gradient(135deg, #38bdf8, #60a5fa);
+}
+
+.metricBarRed {
+  background: linear-gradient(135deg, #fb7185, #ef4444);
+}
+
+.metricAmount {
+  font-size: 13px;
+  color: #fff7ed;
+  white-space: nowrap;
+}
+
+.field {
+  display: grid;
+  gap: 8px;
+}
+
+.field input,
+.field textarea {
+  width: 100%;
+  border-radius: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #fff7ed;
+  outline: none;
+}
+
+.field input {
+  min-height: 48px;
+  padding: 0 14px;
+}
+
+.field textarea {
+  min-height: 110px;
+  padding: 14px;
+  resize: vertical;
+}
+
+.field input:focus,
+.field textarea:focus,
+.monthPicker input:focus {
+  border-color: rgba(251, 146, 60, 0.36);
+  box-shadow: 0 0 0 4px rgba(251, 146, 60, 0.12);
+}
+
+.primaryButton {
+  width: 100%;
+  cursor: pointer;
+}
+
+.primaryButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.expenseCard strong {
+  font-size: 15px;
+}
+
+.expenseCard p {
+  margin: 0;
+  color: rgba(254, 242, 242, 0.74);
+  line-height: 1.55;
+}
+
+.subtle {
+  color: rgba(254, 242, 242, 0.68);
+  line-height: 1.6;
+}
+
+.feedback,
+.error {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+}
+
+.feedback {
+  background: rgba(34, 197, 94, 0.12);
+  border: 1px solid rgba(134, 239, 172, 0.18);
+  color: #dcfce7;
+}
+
+.error {
+  background: rgba(239, 68, 68, 0.12);
+  border: 1px solid rgba(248, 113, 113, 0.2);
+  color: #fecaca;
+}
+
+@media (max-width: 1180px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 860px) {
+  .hero,
+  .sectionHeader,
+  .heroActions {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .highlightGrid,
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .metricRow,
+  .metricRowCompact {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 18px;
+  }
+
+  .hero,
+  .statCard,
+  .mainPanel,
+  .sideCard,
+  .sectionCard,
+  .highlightCard,
+  .errorState,
+  .lockedShell {
+    padding: 20px;
+    border-radius: 24px;
+  }
+}

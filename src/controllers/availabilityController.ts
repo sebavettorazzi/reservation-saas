@@ -14,31 +14,24 @@ export const getAvailability = async (req: Request, res: Response) => {
       });
     }
 
-    // Verificar que el servicio existe
     const service = await prisma.service.findUnique({
       where: { id: serviceId },
     });
 
-    if (!service) {
+    if (!service || service.businessId !== businessId) {
       return res.status(404).json({
         error: "Service not found",
       });
     }
 
-    // Parsear la fecha
     const parsedDate = new Date(date);
+    const slots = await getAvailableSlots(businessId, serviceId, parsedDate);
 
-    // Obtener slots disponibles basados en las reservas existentes
-    const slots = await getAvailableSlots(
-      businessId, // string, se convertirá a int dentro del engine
-      service.duration,
-      parsedDate
-    );
-
-    res.json(slots);
+    return res.json(slots);
   } catch (error) {
     console.error(error);
-    res.status(500).json({
+
+    return res.status(500).json({
       error: "Internal server error",
     });
   }

@@ -1,7 +1,7 @@
 import { Request, Response } from "express";
+import { Prisma } from "@prisma/client";
 import prisma from "../prisma-client";
 import { getAvailableSlots } from "../services/availability-engine";
-import { Prisma } from "@prisma/client";
 
 export const createAppointment = async (req: Request, res: Response) => {
   try {
@@ -14,7 +14,6 @@ export const createAppointment = async (req: Request, res: Response) => {
     const start = new Date(startTime);
     const end = new Date(endTime);
 
-    // ✅ Buscar el servicio
     const service = await prisma.service.findUnique({
       where: { id: serviceId },
     });
@@ -23,26 +22,25 @@ export const createAppointment = async (req: Request, res: Response) => {
       return res.status(404).json({ error: "Service not found" });
     }
 
-    // ✅ Buscar slots disponibles
     const availableSlots = await getAvailableSlots(
-      service.businessId, // usamos businessId del servicio
-      service.duration,
-      start,
+      service.businessId,
+      service.id,
+      start
     );
 
     const isAvailable = availableSlots.some(
       (slot) =>
         slot.start.getTime() === start.getTime() &&
-        slot.end.getTime() === end.getTime(),
+        slot.end.getTime() === end.getTime()
     );
 
     if (!isAvailable) {
       return res.status(409).json({ error: "Slot is already booked" });
     }
 
-    // ✅ Crear el Appointment
     const appointment = await prisma.appointment.create({
       data: {
+        businessId: service.businessId,
         serviceId,
         customerId,
         startTime: start,
@@ -51,9 +49,10 @@ export const createAppointment = async (req: Request, res: Response) => {
       } as Prisma.AppointmentUncheckedCreateInput,
     });
 
-    res.status(201).json({ appointment });
+    return res.status(201).json({ appointment });
   } catch (error) {
     console.error(error);
-    res.status(500).json({ error: "Internal server error" });
+
+    return res.status(500).json({ error: "Internal server error" });
   }
 };

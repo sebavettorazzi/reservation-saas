@@ -10,6 +10,15 @@ export async function createAppointmentSafe(
   startTime: Date,
   endTime: Date
 ) {
+  const service = await prisma.service.findUnique({
+    where: { id: serviceId },
+    select: { businessId: true },
+  });
+
+  if (!service) {
+    throw new Error("Servicio no encontrado");
+  }
+
   const available = await isTimeSlotAvailable(serviceId, startTime, endTime);
 
   if (!available) {
@@ -18,6 +27,7 @@ export async function createAppointmentSafe(
 
   return await prisma.appointment.create({
     data: {
+      businessId: service.businessId,
       serviceId,
       customerId,
       startTime,

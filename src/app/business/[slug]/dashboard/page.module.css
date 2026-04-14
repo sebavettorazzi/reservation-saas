@@ -1,0 +1,445 @@
+.page {
+  min-height: 100vh;
+  padding: 28px;
+  background:
+    radial-gradient(circle at top left, rgba(56, 189, 248, 0.14), transparent 26%),
+    radial-gradient(circle at bottom right, rgba(59, 130, 246, 0.12), transparent 24%),
+    linear-gradient(180deg, #040816 0%, #091120 100%);
+}
+
+.loadingPage {
+  min-height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  background: linear-gradient(180deg, #040816 0%, #091120 100%);
+}
+
+.errorState {
+  max-width: 420px;
+  padding: 28px;
+  border-radius: 28px;
+  background: rgba(10, 17, 31, 0.9);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  text-align: center;
+}
+
+.hero,
+.statCard,
+.mainPanel,
+.sideCard,
+.nextCard,
+.reservationCard,
+.emptyState {
+  border-radius: 30px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(9, 14, 28, 0.84);
+  box-shadow: 0 30px 90px rgba(0, 0, 0, 0.28);
+  backdrop-filter: blur(18px);
+}
+
+.hero {
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 28px;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 20px;
+}
+
+.eyebrow,
+.panelEyebrow {
+  margin: 0 0 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.18em;
+  font-size: 11px;
+  color: #93c5fd;
+}
+
+.hero h1 {
+  margin: 0;
+  font-size: clamp(40px, 7vw, 72px);
+  line-height: 0.98;
+  letter-spacing: -0.06em;
+}
+
+.lead {
+  margin: 16px 0 0;
+  max-width: 58ch;
+  line-height: 1.7;
+  color: rgba(219, 234, 254, 0.74);
+}
+
+.heroActions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.datePicker {
+  display: grid;
+  gap: 8px;
+}
+
+.datePicker span {
+  font-size: 12px;
+  color: rgba(219, 234, 254, 0.72);
+}
+
+.datePicker input,
+.primaryLink,
+.secondaryLink,
+.saveButton {
+  min-height: 48px;
+  padding: 0 16px;
+  border-radius: 999px;
+}
+
+.datePicker input {
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #eff6ff;
+}
+
+.primaryLink,
+.secondaryLink {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  font-weight: 600;
+}
+
+.primaryLink {
+  color: #082f49;
+  background: linear-gradient(135deg, #93c5fd, #38bdf8);
+}
+
+.secondaryLink {
+  color: #eff6ff;
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.statsGrid {
+  max-width: 1320px;
+  margin: 20px auto 0;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+}
+
+.statCard {
+  padding: 20px;
+}
+
+.statCard span,
+.nextCard span,
+.contactCard span,
+.courtRow span,
+.serviceEditorHeader span,
+.priceField span {
+  font-size: 12px;
+  color: rgba(219, 234, 254, 0.64);
+}
+
+.statCard strong {
+  display: block;
+  margin-top: 12px;
+  font-size: 30px;
+  letter-spacing: -0.05em;
+}
+
+.statCard p {
+  margin: 10px 0 0;
+  line-height: 1.6;
+  color: rgba(219, 234, 254, 0.72);
+}
+
+.layout {
+  max-width: 1320px;
+  margin: 20px auto 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 400px;
+  gap: 20px;
+}
+
+.mainPanel,
+.sideCard {
+  padding: 24px;
+}
+
+.panelHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.panelHeader h2,
+.sideCard h2 {
+  margin: 0;
+  font-size: 28px;
+  letter-spacing: -0.04em;
+}
+
+.subtle {
+  color: rgba(219, 234, 254, 0.62);
+}
+
+.nextCard {
+  margin-top: 18px;
+  padding: 18px;
+}
+
+.nextCard strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 22px;
+}
+
+.nextCard p {
+  margin: 8px 0 0;
+  color: rgba(219, 234, 254, 0.72);
+}
+
+.reservationList {
+  margin-top: 18px;
+  display: grid;
+  gap: 14px;
+}
+
+.reservationCard {
+  padding: 18px;
+  display: grid;
+  grid-template-columns: 120px 1fr 240px;
+  gap: 16px;
+}
+
+.reservationTime {
+  padding: 14px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.reservationTime strong {
+  display: block;
+  font-size: 26px;
+}
+
+.reservationTime span {
+  display: block;
+  margin-top: 6px;
+}
+
+.reservationBody h3 {
+  margin: 0;
+  font-size: 22px;
+}
+
+.reservationBody p {
+  margin: 8px 0 0;
+  color: rgba(219, 234, 254, 0.72);
+}
+
+.metaRow {
+  margin-top: 14px;
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.metaRow span,
+.courtBadge {
+  padding: 8px 12px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.05);
+  font-size: 12px;
+  color: rgba(219, 234, 254, 0.82);
+}
+
+.contactCard {
+  padding: 16px;
+  border-radius: 24px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.contactCard strong {
+  display: block;
+  margin-top: 8px;
+  font-size: 17px;
+}
+
+.contactCard p {
+  margin: 6px 0 0;
+  line-height: 1.6;
+  color: rgba(219, 234, 254, 0.72);
+}
+
+.emptyState {
+  padding: 24px;
+  text-align: center;
+}
+
+.emptyState h3 {
+  margin: 0;
+  font-size: 24px;
+}
+
+.emptyState p {
+  margin: 10px 0 0;
+  color: rgba(219, 234, 254, 0.72);
+}
+
+.sidePanel {
+  display: grid;
+  gap: 20px;
+  align-self: start;
+}
+
+.courtList,
+.serviceEditorList {
+  margin-top: 18px;
+  display: grid;
+  gap: 12px;
+}
+
+.courtRow,
+.serviceEditorCard {
+  padding: 14px 16px;
+  border-radius: 22px;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.courtRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.courtRow strong,
+.serviceEditorHeader strong {
+  display: block;
+  font-size: 16px;
+}
+
+.courtRow span {
+  display: block;
+  margin-top: 4px;
+}
+
+.feedback {
+  margin: 16px 0 0;
+  padding: 12px 14px;
+  border-radius: 16px;
+  background: rgba(59, 130, 246, 0.12);
+  border: 1px solid rgba(147, 197, 253, 0.16);
+  color: #dbeafe;
+}
+
+.serviceEditorCard {
+  border: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.serviceEditorHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.priceField {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+}
+
+.priceField input {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 14px;
+  border-radius: 16px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.04);
+  color: #eff6ff;
+  outline: none;
+}
+
+.priceField input:focus {
+  border-color: rgba(147, 197, 253, 0.36);
+  box-shadow: 0 0 0 4px rgba(147, 197, 253, 0.12);
+}
+
+.saveButton {
+  width: 100%;
+  margin-top: 12px;
+  border: 0;
+  background: linear-gradient(135deg, #93c5fd, #38bdf8);
+  color: #082f49;
+  font-weight: 700;
+  cursor: pointer;
+  transition:
+    transform 160ms ease,
+    opacity 160ms ease;
+}
+
+.saveButton:hover:enabled {
+  transform: translateY(-1px);
+}
+
+.saveButton:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+@media (max-width: 1180px) {
+  .statsGrid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .layout {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 820px) {
+  .hero {
+    display: grid;
+  }
+
+  .heroActions,
+  .panelHeader,
+  .courtRow,
+  .serviceEditorHeader {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .reservationCard {
+    grid-template-columns: 1fr;
+  }
+
+  .statsGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 720px) {
+  .page {
+    padding: 18px;
+  }
+
+  .hero,
+  .statCard,
+  .mainPanel,
+  .sideCard,
+  .nextCard,
+  .reservationCard,
+  .emptyState {
+    padding: 20px;
+    border-radius: 24px;
+  }
+}
