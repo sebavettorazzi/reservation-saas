@@ -1,28 +1,10 @@
 import { prisma } from "@/lib/prisma";
 
-function getDayBoundsUTC(date: Date) {
-  const start = new Date(
-    Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate(),
-      0,
-      0,
-      0
-    )
-  );
+function getArgentinaDayBounds(dateValue: string) {
+  const [year, month, day] = dateValue.split("-").map(Number);
 
-  const end = new Date(
-    Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate(),
-      23,
-      59,
-      59,
-      999
-    )
-  );
+  const start = new Date(Date.UTC(year, month - 1, day, 3, 0, 0, 0));
+  const end = new Date(Date.UTC(year, month - 1, day + 1, 2, 59, 59, 999));
 
   return { start, end };
 }
@@ -111,7 +93,7 @@ export async function getBusinessBySlug(slug: string) {
 
 export async function listBusinessAppointmentsBySlug(
   slug: string,
-  date: Date
+  date: string
 ) {
   const business = await prisma.business.findUnique({
     where: { slug },
@@ -134,7 +116,7 @@ export async function listBusinessAppointmentsBySlug(
     return null;
   }
 
-  const { start, end } = getDayBoundsUTC(date);
+  const { start, end } = getArgentinaDayBounds(date);
 
   const appointments = await prisma.appointment.findMany({
     where: {

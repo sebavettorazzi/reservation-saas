@@ -240,7 +240,7 @@ export default function BookingPage() {
 
   const canContinueCustomer =
     customer.name.trim().length >= 2 &&
-    (customer.email.trim().length > 0 || customer.phone.trim().length > 0);
+    customer.phone.trim().length >= 7;
 
   const stepItems = [
     {
@@ -298,7 +298,7 @@ export default function BookingPage() {
           customer: {
             name: customer.name.trim(),
             email: customer.email.trim() || undefined,
-            phone: customer.phone.trim() || undefined,
+            phone: customer.phone.trim(),
           },
         }),
       });
@@ -428,7 +428,7 @@ export default function BookingPage() {
               </label>
 
               <label className={styles.field}>
-                <span>Email</span>
+                <span>Email opcional</span>
                 <input
                   type="email"
                   value={customer.email}
@@ -443,7 +443,7 @@ export default function BookingPage() {
               </label>
 
               <label className={styles.field}>
-                <span>Phone opcional</span>
+                <span>Telefono</span>
                 <input
                   type="tel"
                   value={customer.phone}
@@ -453,7 +453,7 @@ export default function BookingPage() {
                       phone: event.target.value,
                     }))
                   }
-                  placeholder="+49 151 23456789"
+                  placeholder="+54 11 5555 0000"
                 />
               </label>
             </div>
@@ -614,8 +614,8 @@ export default function BookingPage() {
                 </p>
                 <p>
                   Confirmación para {bookingResult.customer.name}
-                  {bookingResult.customer.email
-                    ? ` · ${bookingResult.customer.email}`
+                  {bookingResult.customer.phone
+                    ? ` · ${bookingResult.customer.phone}`
                     : ""}
                 </p>
               </div>

@@ -1,36 +1,124 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Reservation SaaS
 
-## Getting Started
+SaaS multi-tenant de reservas construido con Next.js, TypeScript, Prisma y PostgreSQL.
 
-First, run the development server:
+## Requisitos en macOS
+
+- Node.js `20.19+` o `22+`. El proyecto incluye `.nvmrc` con Node `22`.
+- npm
+- Docker Desktop o PostgreSQL local
+
+Si usas `nvm`:
+
+```bash
+nvm install
+nvm use
+```
+
+## Configuracion local
+
+1. Instalar dependencias:
+
+```bash
+npm install
+```
+
+2. Crear el archivo `.env` a partir del ejemplo:
+
+```bash
+cp .env.example .env
+```
+
+3. Editar `DATABASE_URL` en `.env` con tu conexion PostgreSQL.
+
+Si usas Docker Desktop, levantar PostgreSQL con:
+
+```bash
+npm run db:up
+```
+
+Si usas PostgreSQL instalado localmente, asegurate de que el servicio este corriendo y que exista la base:
+
+```bash
+createdb reservation_saas
+```
+
+4. Generar Prisma Client y aplicar migraciones:
+
+```bash
+npm run db:generate
+npm run db:migrate
+```
+
+5. Cargar datos demo:
+
+```bash
+npm run db:seed
+```
+
+6. Levantar la app:
 
 ```bash
 npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+En macOS, si aparece `EMFILE: too many open files`, usar:
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+```bash
+npm run dev:mac
+```
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+Abrir [http://localhost:3000](http://localhost:3000).
 
-## Learn More
+## Comandos utiles
 
-To learn more about Next.js, take a look at the following resources:
+```bash
+npm run dev
+npm run dev:mac
+npm run build
+npm run lint
+npm run db:up
+npm run db:down
+npm run db:generate
+npm run db:migrate
+npm run db:seed
+npm run test:availability
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## Notas Windows/macOS
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+- `run-prisma-test.bat` queda solo para Windows.
+- En macOS puedes usar `bash run-prisma-test.sh`.
+- La carpeta `.next` es generada por Next.js y no deberia versionarse.
+- npm usa una cache local en `.npm-cache` para evitar errores de permisos con `~/.npm`.
 
-## Deploy on Vercel
+## Troubleshooting macOS
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+Si `npm install` falla con un mensaje de Prisma sobre Node, actualiza Node primero:
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+```bash
+# opcion recomendada si instalas nvm
+nvm install 22
+nvm use 22
+```
+
+Si npm falla por permisos en la cache global, este proyecto ya usa `.npm-cache`.
+Tambien puedes reparar la cache global con:
+
+```bash
+sudo chown -R $(id -u):$(id -g) ~/.npm
+```
+
+Si Docker Desktop esta instalado pero no abre por cuarentena de macOS:
+
+```bash
+sudo xattr -dr com.apple.quarantine /Applications/Docker.app
+open /Applications/Docker.app
+```
+
+## Rutas principales
+
+- `/booking`: flujo general de reservas.
+- `/business/2-de-abril`: pagina publica demo.
+- `/business/2-de-abril/dashboard`: panel interno demo.
+- `/business/2-de-abril/premium`: modulo premium demo.

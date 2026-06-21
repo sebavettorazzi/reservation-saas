@@ -11,9 +11,11 @@ export async function GET(req: Request, context: Context) {
   try {
     const { slug } = await context.params;
     const { searchParams } = new URL(req.url);
-    const date = searchParams.get("date") ?? new Date().toISOString().slice(0, 10);
+    const date = searchParams.get("date") ?? new Date().toLocaleDateString("en-CA", {
+      timeZone: "America/Argentina/Cordoba",
+    });
 
-    const payload = await listBusinessAppointmentsBySlug(slug, new Date(date));
+    const payload = await listBusinessAppointmentsBySlug(slug, date);
 
     if (!payload) {
       return NextResponse.json(

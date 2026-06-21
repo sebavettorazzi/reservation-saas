@@ -2,11 +2,21 @@
   "name": "reservation-saas",
   "version": "0.1.0",
   "private": true,
+  "engines": {
+    "node": ">=20.19.0"
+  },
   "scripts": {
     "dev": "next dev",
+    "dev:mac": "ulimit -n 10000 && WATCHPACK_POLLING=true next dev --webpack",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint"
+    "lint": "eslint",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "db:generate": "prisma generate",
+    "db:migrate": "prisma migrate dev",
+    "db:seed": "prisma db seed",
+    "test:availability": "ts-node -r dotenv/config src/test/test-availability.ts"
   },
   "dependencies": {
     "@faker-js/faker": "^10.3.0",

@@ -1,10 +1,9 @@
 {
-  "/api/availability/route": "app/api/availability/route.js",
-  "/api/businesses/slug/[slug]/appointments/route": "app/api/businesses/slug/[slug]/appointments/route.js",
-  "/api/businesses/slug/[slug]/premium/route": "app/api/businesses/slug/[slug]/premium/route.js",
+  "/api/appointments/route": "app/api/appointments/route.js",
   "/api/businesses/slug/[slug]/route": "app/api/businesses/slug/[slug]/route.js",
-  "/api/businesses/slug/[slug]/services/[serviceId]/route": "app/api/businesses/slug/[slug]/services/[serviceId]/route.js",
-  "/business/[slug]/dashboard/page": "app/business/[slug]/dashboard/page.js",
-  "/business/[slug]/page": "app/business/[slug]/page.js",
-  "/business/[slug]/premium/page": "app/business/[slug]/premium/page.js"
+  "/_not-found/page": "app/_not-found/page.js",
+  "/api/availability/route": "app/api/availability/route.js",
+  "/page": "app/page.js",
+  "/booking/page": "app/booking/page.js",
+  "/business/[slug]/page": "app/business/[slug]/page.js"
 }

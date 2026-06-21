@@ -9,10 +9,10 @@ export const CreateAppointmentSchema = z.object({
   customer: z.object({
     name: z.string().trim().min(2).max(80),
     email: z.email().optional(),
-    phone: z.string().trim().min(7).max(30).optional(),
-  }).refine((value) => Boolean(value.email || value.phone), {
-    message: "Email or phone is required",
-    path: ["email"],
+    phone: z.string().trim().min(7).max(30),
+  }).refine((value) => Boolean(value.phone), {
+    message: "Phone is required",
+    path: ["phone"],
   }),
 });
 

@@ -64,15 +64,14 @@ type AppointmentResponse = {
 
 type CustomerForm = {
   name: string;
-  email: string;
   phone: string;
 };
 
+type BookingStep = "date" | "court" | "slots" | "details" | "confirm";
 type SlotWindow = "all" | "afternoon" | "night";
 
 const EMPTY_CUSTOMER: CustomerForm = {
   name: "",
-  email: "",
   phone: "",
 };
 
@@ -82,8 +81,21 @@ const SLOT_WINDOWS: Array<{ id: SlotWindow; label: string }> = [
   { id: "night", label: "Noche" },
 ];
 
+const STEP_LABELS: Record<BookingStep, string> = {
+  date: "Fecha",
+  court: "Cancha",
+  slots: "Horario",
+  details: "Datos",
+  confirm: "Confirmar",
+};
+
+const STEP_ORDER: BookingStep[] = ["date", "court", "slots", "details", "confirm"];
+const REQUEST_TIMEOUT_MS = 8000;
+
 function toInputDate(date: Date) {
-  return date.toISOString().slice(0, 10);
+  return date.toLocaleDateString("en-CA", {
+    timeZone: "America/Argentina/Cordoba",
+  });
 }
 
 function formatCurrency(amount: number) {
@@ -98,6 +110,7 @@ function formatTime(value: string) {
   return new Date(value).toLocaleTimeString("es-AR", {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "America/Argentina/Cordoba",
   });
 }
 
@@ -106,7 +119,12 @@ function formatDate(value: string) {
     weekday: "long",
     day: "numeric",
     month: "long",
+    timeZone: "America/Argentina/Cordoba",
   });
+}
+
+function formatInputDate(value: string) {
+  return formatDate(`${value}T12:00:00-03:00`);
 }
 
 function matchesSlotWindow(slot: Slot, slotWindow: SlotWindow) {
@@ -114,7 +132,13 @@ function matchesSlotWindow(slot: Slot, slotWindow: SlotWindow) {
     return true;
   }
 
-  const hour = new Date(slot.start).getHours();
+  const hour = Number(
+    new Intl.DateTimeFormat("en-US", {
+      hour: "numeric",
+      hour12: false,
+      timeZone: "America/Argentina/Cordoba",
+    }).format(new Date(slot.start))
+  );
 
   if (slotWindow === "afternoon") {
     return hour >= 12 && hour < 19;
@@ -124,6 +148,8 @@ function matchesSlotWindow(slot: Slot, slotWindow: SlotWindow) {
 }
 
 export default function BusinessPublicClient({ slug }: { slug: string }) {
+  const [bookingStarted, setBookingStarted] = useState(false);
+  const [step, setStep] = useState<BookingStep>("date");
   const [customer, setCustomer] = useState<CustomerForm>(EMPTY_CUSTOMER);
   const [business, setBusiness] = useState<BusinessDetail | null>(null);
   const [selectedServiceId, setSelectedServiceId] = useState("");
@@ -142,11 +168,16 @@ export default function BusinessPublicClient({ slug }: { slug: string }) {
 
   useEffect(() => {
     async function loadBusiness() {
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
       try {
         setLoadingBusiness(true);
         setError(null);
 
-        const response = await fetch(`/api/businesses/slug/${encodeURIComponent(slug)}`);
+        const response = await fetch(`/api/businesses/slug/${encodeURIComponent(slug)}`, {
+          signal: controller.signal,
+        });
 
         if (!response.ok) {
           throw new Error("Could not load business");
@@ -162,6 +193,7 @@ export default function BusinessPublicClient({ slug }: { slug: string }) {
         console.error(loadError);
         setError("No se pudo cargar este sistema.");
       } finally {
+        window.clearTimeout(timeoutId);
         setLoadingBusiness(false);
       }
     }
@@ -178,6 +210,9 @@ export default function BusinessPublicClient({ slug }: { slug: string }) {
     const currentBusiness = business;
 
     async function loadSlots() {
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
+
       try {
         setLoadingSlots(true);
         setSlotError(null);
@@ -190,7 +225,9 @@ export default function BusinessPublicClient({ slug }: { slug: string }) {
           date: selectedDate,
         });
 
-        const response = await fetch(`/api/availability?${params.toString()}`);
+        const response = await fetch(`/api/availability?${params.toString()}`, {
+          signal: controller.signal,
+        });
 
         if (!response.ok) {
           throw new Error("Could not load availability");
@@ -202,6 +239,7 @@ export default function BusinessPublicClient({ slug }: { slug: string }) {
         console.error(loadError);
         setSlotError("No se pudieron cargar los horarios disponibles.");
       } finally {
+        window.clearTimeout(timeoutId);
         setLoadingSlots(false);
       }
     }
@@ -247,10 +285,15 @@ export default function BusinessPublicClient({ slug }: { slug: string }) {
 
   const readyToBook =
     customer.name.trim().length >= 2 &&
-    (customer.email.trim().length > 0 || customer.phone.trim().length > 0) &&
+    customer.phone.trim().length >= 7 &&
     Boolean(selectedService) &&
     Boolean(selectedSlot) &&
     Boolean(business);
+
+  function goToStep(nextStep: BookingStep) {
+    setStep(nextStep);
+    window.scrollTo({ top: 0, behavior: "smooth" });
+  }
 
   async function refreshAvailability() {
     if (!business || !selectedServiceId) {
@@ -293,8 +336,7 @@ export default function BusinessPublicClient({ slug }: { slug: string }) {
           end: selectedSlot.end,
           customer: {
             name: customer.name.trim(),
-            email: customer.email.trim() || undefined,
-            phone: customer.phone.trim() || undefined,
+            phone: customer.phone.trim(),
           },
         }),
       });
@@ -338,68 +380,84 @@ export default function BusinessPublicClient({ slug }: { slug: string }) {
     );
   }
 
-  return (
-    <div className={styles.page}>
-      <header className={styles.hero}>
-        <div className={styles.heroCopy}>
+  if (!bookingStarted) {
+    return (
+      <main className={styles.startPage}>
+        <section className={styles.startHero}>
           <p className={styles.eyebrow}>Complejo deportivo</p>
           <h1>{business.name}</h1>
-          <p className={styles.lead}>
-            {business.tagline ??
-              "Reserva tu cancha en pocos pasos y recibe la confirmacion al instante."}
-          </p>
-          <p className={styles.description}>
-            {business.description ??
-              "Sistema online para ver horarios disponibles y reservar sin llamadas ni mensajes."}
-          </p>
-
-          <div className={styles.heroMeta}>
-            <span>{business._count.staff} canchas activas</span>
-            <span>{business._count.services} tipos de reserva</span>
-            <span>Reservas directas online</span>
-          </div>
-        </div>
-
-        <div className={styles.heroPanel}>
-          <p className={styles.panelLabel}>Identidad del complejo</p>
-          <h2>2 de Abril</h2>
           <p>
-            El nombre honra la memoria de Malvinas y la historia personal del fundador del
-            complejo. La experiencia publica queda enfocada solo en elegir cancha, horario
-            y confirmar la reserva.
+            {business.tagline ??
+              "Reserva tu cancha en pocos pasos y confirma el turno online."}
           </p>
+          <button
+            type="button"
+            className={styles.startButton}
+            onClick={() => {
+              setBookingStarted(true);
+              goToStep("date");
+            }}
+          >
+            Reservar turno
+          </button>
+        </section>
+      </main>
+    );
+  }
+
+  return (
+    <main className={styles.flowPage}>
+      <section className={styles.flowShell}>
+        <header className={styles.flowHeader}>
+          <div>
+            <p className={styles.eyebrow}>{business.name}</p>
+            <h1>{STEP_LABELS[step]}</h1>
+          </div>
+          <button
+            type="button"
+            className={styles.secondaryButton}
+            onClick={() => setBookingStarted(false)}
+          >
+            Inicio
+          </button>
+        </header>
+
+        <div className={styles.stepRail}>
+          {STEP_ORDER.map((item) => (
+            <span key={item} className={item === step ? styles.stepActive : ""}>
+              {STEP_LABELS[item]}
+            </span>
+          ))}
         </div>
-      </header>
 
-      <main className={styles.layout}>
-        <section className={styles.infoColumn}>
-          <article className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <div>
-                <p className={styles.panelEyebrow}>Canchas</p>
-                <h3>Disponibilidad del complejo</h3>
-              </div>
-              <span className={styles.planBadge}>{business.staff.length} recursos</span>
+        {step === "date" && (
+          <section className={styles.stepCard}>
+            <p className={styles.panelEyebrow}>Paso 1</p>
+            <h2>Elegir fecha</h2>
+            <label className={styles.field}>
+              <span>Fecha del turno</span>
+              <input
+                type="date"
+                min={toInputDate(new Date())}
+                value={selectedDate}
+                onChange={(event) => setSelectedDate(event.target.value)}
+              />
+            </label>
+            <div className={styles.stepActions}>
+              <button type="button" className={styles.confirmButton} onClick={() => goToStep("court")}>
+                Continuar
+              </button>
             </div>
+          </section>
+        )}
 
-            <div className={styles.compactCourtGrid}>
-              {business.staff.map((court) => (
-                <div key={court.id} className={styles.compactCourtCard}>
-                  <strong>{court.name}</strong>
-                  <span>Asignacion automatica por disponibilidad real.</span>
-                </div>
-              ))}
-            </div>
-          </article>
-
-          <article className={styles.panel}>
-            <div className={styles.panelHeader}>
-              <div>
-                <p className={styles.panelEyebrow}>Tipos de reserva</p>
-                <h3>Elegi tu cancha</h3>
-              </div>
-            </div>
-
+        {step === "court" && (
+          <section className={styles.stepCard}>
+            <p className={styles.panelEyebrow}>Paso 2</p>
+            <h2>Elegir cancha</h2>
+            <p className={styles.stepHint}>
+              Fecha seleccionada: {formatInputDate(selectedDate)}
+            </p>
             <div className={styles.serviceGrid}>
               {business.services.map((service) => (
                 <button
@@ -415,23 +473,118 @@ export default function BusinessPublicClient({ slug }: { slug: string }) {
                   <div className={styles.serviceMeta}>
                     <span>{service.duration} min</span>
                     <span>{formatCurrency(service.price)}</span>
-                    <span>{service._count.staff} cancha/s</span>
                   </div>
                 </button>
               ))}
             </div>
-          </article>
-        </section>
+            <div className={styles.stepActions}>
+              <button type="button" className={styles.backButton} onClick={() => goToStep("date")}>
+                Volver
+              </button>
+              <button
+                type="button"
+                className={styles.confirmButton}
+                disabled={!selectedService}
+                onClick={() => goToStep("slots")}
+              >
+                Ver horarios
+              </button>
+            </div>
+          </section>
+        )}
 
-        <aside className={styles.bookingPanel}>
-          <div className={styles.bookingCard}>
-            <div className={styles.panelHeader}>
-              <div>
-                <p className={styles.panelEyebrow}>Reserva online</p>
-                <h3>Tomar un turno</h3>
+        {step === "slots" && (
+          <section className={styles.stepCard}>
+            <p className={styles.panelEyebrow}>Paso 3</p>
+            <h2>Elegir horario</h2>
+            <p className={styles.stepHint}>
+              {selectedService?.name} · {formatInputDate(selectedDate)}
+            </p>
+            {slotError && <p className={styles.error}>{slotError}</p>}
+            <div className={styles.slotToolbar}>
+              <div className={styles.filterRow}>
+                {SLOT_WINDOWS.map((window) => (
+                  <button
+                    key={window.id}
+                    type="button"
+                    className={`${styles.filterChip} ${
+                      slotWindow === window.id ? styles.filterChipActive : ""
+                    }`}
+                    onClick={() => setSlotWindow(window.id)}
+                  >
+                    {window.label}
+                  </button>
+                ))}
               </div>
+              {loadingSlots && <span className={styles.subtle}>Buscando...</span>}
             </div>
 
+            {loadingSlots ? (
+              <p className={styles.subtle}>Consultando disponibilidad real...</p>
+            ) : filteredSlots.length > 0 ? (
+              <>
+                <div className={styles.slotGrid}>
+                  {visibleSlots.map((slot) => {
+                    const recommendedCourt = slot.availableStaff.find(
+                      (staff) => staff.id === slot.bestStaffId
+                    );
+
+                    return (
+                      <button
+                        key={slot.start}
+                        type="button"
+                        className={`${styles.slotCard} ${
+                          selectedSlotStart === slot.start ? styles.slotCardActive : ""
+                        }`}
+                        onClick={() => setSelectedSlotStart(slot.start)}
+                      >
+                        <strong>{formatTime(slot.start)}</strong>
+                        <span>
+                          {recommendedCourt
+                            ? recommendedCourt.name
+                            : "Asignacion automatica"}
+                        </span>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {filteredSlots.length > visibleSlots.length && (
+                  <button
+                    type="button"
+                    className={styles.moreButton}
+                    onClick={() => setVisibleSlotCount((current) => current + 8)}
+                  >
+                    Ver mas horarios
+                  </button>
+                )}
+              </>
+            ) : (
+              <p className={styles.subtle}>
+                No hay turnos para la franja elegida. Proba otra fecha u otro horario.
+              </p>
+            )}
+
+            <div className={styles.stepActions}>
+              <button type="button" className={styles.backButton} onClick={() => goToStep("court")}>
+                Volver
+              </button>
+              <button
+                type="button"
+                className={styles.confirmButton}
+                disabled={!selectedSlot}
+                onClick={() => goToStep("details")}
+              >
+                Continuar
+              </button>
+            </div>
+          </section>
+        )}
+
+        {step === "details" && (
+          <section className={styles.stepCard}>
+            <p className={styles.panelEyebrow}>Paso 4</p>
+            <h2>Tus datos</h2>
             <div className={styles.formGrid}>
               <label className={styles.field}>
                 <span>Nombre y apellido</span>
@@ -444,21 +597,6 @@ export default function BusinessPublicClient({ slug }: { slug: string }) {
                     }))
                   }
                   placeholder="Nombre del responsable"
-                />
-              </label>
-
-              <label className={styles.field}>
-                <span>Email</span>
-                <input
-                  type="email"
-                  value={customer.email}
-                  onChange={(event) =>
-                    setCustomer((current) => ({
-                      ...current,
-                      email: event.target.value,
-                    }))
-                  }
-                  placeholder="equipo@correo.com"
                 />
               </label>
 
@@ -476,94 +614,28 @@ export default function BusinessPublicClient({ slug }: { slug: string }) {
                   placeholder="+54 11 5555 0000"
                 />
               </label>
-
-              <label className={styles.field}>
-                <span>Fecha</span>
-                <input
-                  type="date"
-                  min={toInputDate(new Date())}
-                  value={selectedDate}
-                  onChange={(event) => setSelectedDate(event.target.value)}
-                />
-              </label>
             </div>
 
-            {slotError && <p className={styles.error}>{slotError}</p>}
-
-            <div className={styles.slotSection}>
-              <div className={styles.selectorRow}>
-                <h4>Horarios disponibles</h4>
-                {loadingSlots && <span className={styles.subtle}>Buscando...</span>}
-              </div>
-
-              <div className={styles.slotToolbar}>
-                <div className={styles.filterRow}>
-                  {SLOT_WINDOWS.map((window) => (
-                    <button
-                      key={window.id}
-                      type="button"
-                      className={`${styles.filterChip} ${
-                        slotWindow === window.id ? styles.filterChipActive : ""
-                      }`}
-                      onClick={() => setSlotWindow(window.id)}
-                    >
-                      {window.label}
-                    </button>
-                  ))}
-                </div>
-                <span className={styles.subtle}>{filteredSlots.length} horarios visibles</span>
-              </div>
-
-              {loadingSlots ? (
-                <p className={styles.subtle}>Consultando disponibilidad real...</p>
-              ) : filteredSlots.length > 0 ? (
-                <>
-                  <div className={styles.slotGrid}>
-                    {visibleSlots.map((slot) => {
-                      const recommendedCourt = slot.availableStaff.find(
-                        (staff) => staff.id === slot.bestStaffId
-                      );
-
-                      return (
-                        <button
-                          key={slot.start}
-                          type="button"
-                          className={`${styles.slotCard} ${
-                            selectedSlotStart === slot.start ? styles.slotCardActive : ""
-                          }`}
-                          onClick={() => setSelectedSlotStart(slot.start)}
-                        >
-                          <strong>{formatTime(slot.start)}</strong>
-                          <span>{slot.availableStaff.length} canchas libres</span>
-                          <span>
-                            {recommendedCourt
-                              ? `Sugerida: ${recommendedCourt.name}`
-                              : "Asignacion automatica"}
-                          </span>
-                        </button>
-                      );
-                    })}
-                  </div>
-
-                  {filteredSlots.length > visibleSlots.length && (
-                    <button
-                      type="button"
-                      className={styles.moreButton}
-                      onClick={() => setVisibleSlotCount((current) => current + 8)}
-                    >
-                      Ver mas horarios
-                    </button>
-                  )}
-                </>
-              ) : (
-                <p className={styles.subtle}>
-                  No hay turnos para la franja elegida. Proba otra fecha u otro bloque horario.
-                </p>
-              )}
+            <div className={styles.stepActions}>
+              <button type="button" className={styles.backButton} onClick={() => goToStep("slots")}>
+                Volver
+              </button>
+              <button
+                type="button"
+                className={styles.confirmButton}
+                disabled={customer.name.trim().length < 2 || customer.phone.trim().length < 7}
+                onClick={() => goToStep("confirm")}
+              >
+                Revisar reserva
+              </button>
             </div>
+          </section>
+        )}
 
-            {submitError && <p className={styles.error}>{submitError}</p>}
-
+        {step === "confirm" && (
+          <section className={styles.stepCard}>
+            <p className={styles.panelEyebrow}>Paso 5</p>
+            <h2>Confirmar reserva</h2>
             {bookingResult ? (
               <div className={styles.successCard}>
                 <p className={styles.panelEyebrow}>Reserva confirmada</p>
@@ -579,31 +651,50 @@ export default function BusinessPublicClient({ slug }: { slug: string }) {
             ) : (
               <div className={styles.summaryCard}>
                 <div>
-                  <span>Servicio</span>
-                  <strong>{selectedService?.name ?? "Selecciona una opcion"}</strong>
+                  <span>Fecha</span>
+                  <strong>{formatInputDate(selectedDate)}</strong>
+                </div>
+                <div>
+                  <span>Cancha</span>
+                  <strong>{selectedService?.name ?? "Sin elegir"}</strong>
                 </div>
                 <div>
                   <span>Horario</span>
                   <strong>{selectedSlot ? formatTime(selectedSlot.start) : "Sin elegir"}</strong>
                 </div>
                 <div>
-                  <span>Cancha</span>
+                  <span>Asignacion</span>
                   <strong>{selectedCourtName}</strong>
+                </div>
+                <div>
+                  <span>Responsable</span>
+                  <strong>{customer.name}</strong>
+                </div>
+                <div>
+                  <span>Telefono</span>
+                  <strong>{customer.phone}</strong>
                 </div>
               </div>
             )}
 
-            <button
-              type="button"
-              className={styles.confirmButton}
-              disabled={!readyToBook || submitting || Boolean(bookingResult)}
-              onClick={confirmBooking}
-            >
-              {submitting ? "Confirmando..." : "Confirmar reserva"}
-            </button>
-          </div>
-        </aside>
-      </main>
-    </div>
+            {submitError && <p className={styles.error}>{submitError}</p>}
+
+            <div className={styles.stepActions}>
+              <button type="button" className={styles.backButton} onClick={() => goToStep("details")}>
+                Volver
+              </button>
+              <button
+                type="button"
+                className={styles.confirmButton}
+                disabled={!readyToBook || submitting || Boolean(bookingResult)}
+                onClick={confirmBooking}
+              >
+                {submitting ? "Confirmando..." : "Confirmar reserva"}
+              </button>
+            </div>
+          </section>
+        )}
+      </section>
+    </main>
   );
 }

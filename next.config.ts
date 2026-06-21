@@ -1,7 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  turbopack: {},
+  webpack: (config) => {
+    config.watchOptions = {
+      ...config.watchOptions,
+      ignored: ["**/.next/**", "**/node_modules/**", "**/.npm-cache/**"],
+    };
+
+    return config;
+  },
 };
 
 export default nextConfig;

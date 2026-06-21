@@ -59,7 +59,9 @@ type Appointment = {
 };
 
 function toInputDate(date: Date) {
-  return date.toISOString().slice(0, 10);
+  return date.toLocaleDateString("en-CA", {
+    timeZone: "America/Argentina/Cordoba",
+  });
 }
 
 function formatCurrency(amount: number) {
@@ -74,6 +76,7 @@ function formatTime(value: string) {
   return new Date(value).toLocaleTimeString("es-AR", {
     hour: "2-digit",
     minute: "2-digit",
+    timeZone: "America/Argentina/Cordoba",
   });
 }
 
@@ -82,7 +85,12 @@ function formatDate(value: string) {
     weekday: "long",
     day: "numeric",
     month: "long",
+    timeZone: "America/Argentina/Cordoba",
   });
+}
+
+function formatInputDate(value: string) {
+  return formatDate(`${value}T12:00:00-03:00`);
 }
 
 export default function BusinessDashboardClient({ slug }: { slug: string }) {
@@ -173,18 +181,6 @@ export default function BusinessDashboardClient({ slug }: { slug: string }) {
     const now = Date.now();
     return appointments.find((appointment) => new Date(appointment.startTime).getTime() >= now);
   }, [appointments]);
-
-  const courtLoad = useMemo(() => {
-    if (!business) {
-      return [];
-    }
-
-    return business.staff.map((court) => ({
-      id: court.id,
-      name: court.name,
-      bookings: appointments.filter((appointment) => appointment.staff?.id === court.id).length,
-    }));
-  }, [appointments, business]);
 
   async function saveServicePrice(serviceId: string) {
     const rawPrice = priceDrafts[serviceId];
@@ -327,7 +323,7 @@ export default function BusinessDashboardClient({ slug }: { slug: string }) {
         <article className={styles.statCard}>
           <span>Reservas del dia</span>
           <strong>{appointments.length}</strong>
-          <p>{formatDate(`${selectedDate}T00:00:00.000Z`)}</p>
+          <p>{formatInputDate(selectedDate)}</p>
         </article>
 
         <article className={styles.statCard}>
@@ -369,7 +365,7 @@ export default function BusinessDashboardClient({ slug }: { slug: string }) {
           ) : (
             <div className={styles.nextCard}>
               <span>Proxima reserva</span>
-              <strong>Sin reservas pendientes para hoy</strong>
+              <strong>Sin reservas pendientes para esta fecha</strong>
               <p>La agenda esta libre en la fecha seleccionada.</p>
             </div>
           )}
@@ -415,25 +411,6 @@ export default function BusinessDashboardClient({ slug }: { slug: string }) {
         </section>
 
         <aside className={styles.sidePanel}>
-          <div className={styles.sideCard}>
-            <p className={styles.panelEyebrow}>Canchas</p>
-            <h2>Estado por recurso</h2>
-
-            <div className={styles.courtList}>
-              {courtLoad.map((court) => (
-                <div key={court.id} className={styles.courtRow}>
-                  <div>
-                    <strong>{court.name}</strong>
-                    <span>{court.bookings} reserva/s</span>
-                  </div>
-                  <span className={styles.courtBadge}>
-                    {court.bookings === 0 ? "Libre" : "Ocupada"}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
           <div className={styles.sideCard}>
             <div className={styles.panelHeader}>
               <div>
