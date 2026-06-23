@@ -1,4 +1,4 @@
-# Reservation SaaS
+# Reservation SaaS (proyecto personal en desarrollo)
 
 Sistema multi-tenant de reservas construido con Next.js, TypeScript, Prisma y PostgreSQL. Se ejecuta igual desde macOS y Windows, incluida la terminal integrada de VS Code.
 
