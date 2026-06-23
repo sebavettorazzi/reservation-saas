@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import PremiumDashboardClient from "./PremiumDashboardClient";
+import { redirect } from "next/navigation";
 
 export const metadata: Metadata = {
   robots: {
@@ -16,6 +16,5 @@ type PageProps = {
 
 export default async function BusinessPremiumPage({ params }: PageProps) {
   const { slug } = await params;
-
-  return <PremiumDashboardClient slug={slug} />;
+  redirect(`/business/${slug}/dashboard`);
 }

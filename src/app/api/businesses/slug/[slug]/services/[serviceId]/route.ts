@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getCurrentUser, getOwnedBusiness } from "@/lib/auth";
 import { UpdateServicePriceSchema } from "@/contracts/service.contract";
 import { updateBusinessServicePriceBySlug } from "@/services/business-admin";
 
@@ -12,6 +13,11 @@ type Context = {
 export async function PATCH(req: Request, context: Context) {
   try {
     const { slug, serviceId } = await context.params;
+    const user = await getCurrentUser();
+
+    if (!user || !(await getOwnedBusiness(user.id, slug))) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const body = await req.json();
     const parsed = UpdateServicePriceSchema.safeParse(body);
 

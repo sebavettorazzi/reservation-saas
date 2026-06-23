@@ -166,6 +166,51 @@
   gap: 20px;
 }
 
+.tabs {
+  display: flex;
+  max-width: 1320px;
+  gap: 8px;
+  margin: 20px auto 0;
+  padding: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 8px;
+  background: rgba(9, 14, 28, 0.84);
+}
+
+.tab,
+.tabActive {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 6px;
+  color: rgba(219, 234, 254, 0.74);
+  background: transparent;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.tabActive {
+  color: #082f49;
+  background: #93c5fd;
+}
+
+.appointmentsLayout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.settingsLayout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.settingsLayout .sidePanel {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: start;
+}
+
+.hiddenPanel {
+  display: none;
+}
+
 .mainPanel,
 .sideCard {
   padding: 24px;
@@ -395,6 +440,37 @@
   cursor: not-allowed;
 }
 
+.cancelButton {
+  width: 100%;
+  min-height: 40px;
+  margin-top: 8px;
+  border: 1px solid rgba(248, 113, 113, 0.38);
+  border-radius: 16px;
+  color: #fecaca;
+  background: rgba(127, 29, 29, 0.2);
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.scheduleRow {
+  display: grid;
+  grid-template-columns: 32px 20px 1fr 1fr;
+  align-items: center;
+  gap: 8px;
+  margin-top: 10px;
+  font-size: 12px;
+}
+
+.scheduleRow input[type="time"] {
+  width: 100%;
+  min-height: 34px;
+  padding: 0 6px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  color: #eff6ff;
+  background: rgba(255, 255, 255, 0.04);
+}
+
 @media (max-width: 1180px) {
   .statsGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -423,6 +499,10 @@
   }
 
   .statsGrid {
+    grid-template-columns: 1fr;
+  }
+
+  .settingsLayout .sidePanel {
     grid-template-columns: 1fr;
   }
 }

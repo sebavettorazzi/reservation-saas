@@ -3,6 +3,8 @@ import { prisma } from "@/lib/prisma";
 import { CreateAppointmentSchema } from "@/contracts/appointment.contract";
 import { getAvailableSlots } from "@/services/availability-engine";
 
+const CONFIRMATION_WINDOW_MS = 3 * 60 * 60 * 1000;
+
 export async function POST(req: Request) {
   try {
     const body = await req.json();
@@ -38,6 +40,9 @@ export async function POST(req: Request) {
       where: {
         id: serviceId,
         businessId,
+      },
+      include: {
+        business: { select: { plan: true, name: true } },
       },
     });
 
@@ -133,6 +138,9 @@ export async function POST(req: Request) {
           },
         });
 
+    const isPremium = service.business.plan === "PREMIUM";
+    const confirmationAt = new Date(startDate.getTime() - CONFIRMATION_WINDOW_MS);
+    const requiresConfirmation = isPremium && confirmationAt > new Date();
     const appointment = await prisma.appointment.create({
       data: {
         businessId,
@@ -141,7 +149,8 @@ export async function POST(req: Request) {
         staffId: assignedStaffId,
         startTime: startDate,
         endTime: endDate,
-        status: "confirmed",
+        status: requiresConfirmation ? "PENDING" : "CONFIRMED",
+        priceSnapshot: service.price,
       },
       include: {
         customer: {
@@ -168,6 +177,24 @@ export async function POST(req: Request) {
         },
       },
     });
+
+    if (requiresConfirmation && customer.phone) {
+      const formattedStart = startDate.toLocaleString("es-AR", {
+        dateStyle: "full",
+        timeStyle: "short",
+        timeZone: "America/Argentina/Cordoba",
+      });
+      await prisma.notification.create({
+        data: {
+          businessId,
+          appointmentId: appointment.id,
+          recipient: customer.phone,
+          body: `Hola ${customer.name}, tu reserva en ${service.business.name} es ${formattedStart}. Responde SI para confirmarla.`,
+          status: "PENDING",
+          scheduledAt: confirmationAt,
+        },
+      });
+    }
 
     return NextResponse.json(appointment, { status: 201 });
   } catch (error) {

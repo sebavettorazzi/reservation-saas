@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getCurrentUser, getOwnedBusiness } from "@/lib/auth";
 import { getBusinessPremiumDashboardBySlug } from "@/services/business-premium";
 
 type Context = {
@@ -10,6 +11,11 @@ type Context = {
 export async function GET(req: Request, context: Context) {
   try {
     const { slug } = await context.params;
+    const user = await getCurrentUser();
+
+    if (!user || !(await getOwnedBusiness(user.id, slug))) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const { searchParams } = new URL(req.url);
     const date = searchParams.get("date") ?? new Date().toISOString();
 

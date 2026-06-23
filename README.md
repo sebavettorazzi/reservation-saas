@@ -1,120 +1,70 @@
 # Reservation SaaS
 
-SaaS multi-tenant de reservas construido con Next.js, TypeScript, Prisma y PostgreSQL.
+Sistema multi-tenant de reservas construido con Next.js, TypeScript, Prisma y PostgreSQL. Se ejecuta igual desde macOS y Windows, incluida la terminal integrada de VS Code.
 
-## Requisitos en macOS
+## Requisitos
 
-- Node.js `20.19+` o `22+`. El proyecto incluye `.nvmrc` con Node `22`.
-- npm
-- Docker Desktop o PostgreSQL local
+- Node.js 22. La version esta declarada en `.nvmrc` y `.node-version`.
+- npm.
+- Docker Desktop, para ejecutar PostgreSQL de forma identica en ambos sistemas.
 
-Si usas `nvm`:
+## Inicio local
+
+Abrir la terminal integrada de VS Code en la carpeta del proyecto y ejecutar:
 
 ```bash
-nvm install
-nvm use
+npm ci
 ```
 
-## Configuracion local
-
-1. Instalar dependencias:
+Crear `.env` desde el ejemplo:
 
 ```bash
-npm install
-```
-
-2. Crear el archivo `.env` a partir del ejemplo:
-
-```bash
+# macOS / Linux
 cp .env.example .env
+
+# Windows PowerShell
+Copy-Item .env.example .env
 ```
 
-3. Editar `DATABASE_URL` en `.env` con tu conexion PostgreSQL.
-
-Si usas Docker Desktop, levantar PostgreSQL con:
+Iniciar la base, aplicar el esquema y cargar datos demo:
 
 ```bash
 npm run db:up
-```
-
-Si usas PostgreSQL instalado localmente, asegurate de que el servicio este corriendo y que exista la base:
-
-```bash
-createdb reservation_saas
-```
-
-4. Generar Prisma Client y aplicar migraciones:
-
-```bash
 npm run db:generate
 npm run db:migrate
-```
-
-5. Cargar datos demo:
-
-```bash
 npm run db:seed
 ```
 
-6. Levantar la app:
+Iniciar la aplicacion:
 
 ```bash
 npm run dev
-```
-
-En macOS, si aparece `EMFILE: too many open files`, usar:
-
-```bash
-npm run dev:mac
 ```
 
 Abrir [http://localhost:3000](http://localhost:3000).
 
-## Comandos utiles
+## Comandos
 
-```bash
-npm run dev
-npm run dev:mac
-npm run build
-npm run lint
-npm run db:up
-npm run db:down
-npm run db:generate
-npm run db:migrate
-npm run db:seed
-npm run test:availability
-```
+| Comando | Uso |
+| --- | --- |
+| `npm run dev` | Inicia la aplicacion en desarrollo. |
+| `npm run clean` | Elimina archivos generados de Next, TypeScript y cobertura. |
+| `npm run check` | Ejecuta lint y comprobacion de tipos. |
+| `npm run build` | Genera una compilacion de produccion. |
+| `npm run db:up` | Inicia PostgreSQL con Docker. |
+| `npm run db:down` | Detiene PostgreSQL. |
+| `npm run db:generate` | Genera Prisma Client. |
+| `npm run db:migrate` | Aplica las migraciones locales. |
+| `npm run db:seed` | Carga datos demo. |
+| `npm run db:verify` | Verifica que el motor de disponibilidad responda. |
 
-## Notas Windows/macOS
+## Estructura
 
-- `run-prisma-test.bat` queda solo para Windows.
-- En macOS puedes usar `bash run-prisma-test.sh`.
-- La carpeta `.next` es generada por Next.js y no deberia versionarse.
-- npm usa una cache local en `.npm-cache` para evitar errores de permisos con `~/.npm`.
-
-## Troubleshooting macOS
-
-Si `npm install` falla con un mensaje de Prisma sobre Node, actualiza Node primero:
-
-```bash
-# opcion recomendada si instalas nvm
-nvm install 22
-nvm use 22
-```
-
-Si npm falla por permisos en la cache global, este proyecto ya usa `.npm-cache`.
-Tambien puedes reparar la cache global con:
-
-```bash
-sudo chown -R $(id -u):$(id -g) ~/.npm
-```
-
-Si Docker Desktop esta instalado pero no abre por cuarentena de macOS:
-
-```bash
-sudo xattr -dr com.apple.quarantine /Applications/Docker.app
-open /Applications/Docker.app
-```
+- `src/app`: pantallas y API de Next.js.
+- `src/services`: reglas de negocio y disponibilidad.
+- `src/contracts`: validacion de entradas.
+- `prisma`: esquema, migraciones y datos demo.
+- `public/brand`: imagenes usadas por la interfaz.
 
 ## Rutas principales
 
@@ -122,3 +72,7 @@ open /Applications/Docker.app
 - `/business/2-de-abril`: pagina publica demo.
 - `/business/2-de-abril/dashboard`: panel interno demo.
 - `/business/2-de-abril/premium`: modulo premium demo.
+
+## Compatibilidad
+
+No hay scripts que dependan de Bash, PowerShell o archivos `.bat`. Docker Compose mantiene la misma base PostgreSQL en macOS y Windows; `.gitattributes` normaliza los finales de linea y los archivos generados quedan fuera de Git.

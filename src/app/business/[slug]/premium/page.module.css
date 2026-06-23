@@ -1,3 +1,35 @@
+.dashboardTabs {
+  position: sticky;
+  top: 12px;
+  z-index: 10;
+  display: flex;
+  width: fit-content;
+  gap: 8px;
+  margin: 12px auto -8px;
+  padding: 5px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 8px;
+  background: rgba(24, 11, 11, 0.94);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.28);
+}
+
+.dashboardTab,
+.dashboardTabActive {
+  min-height: 42px;
+  padding: 0 16px;
+  border: 0;
+  border-radius: 6px;
+  color: rgba(255, 237, 213, 0.78);
+  background: transparent;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.dashboardTabActive {
+  color: #431407;
+  background: #fdba74;
+}
+
 .page {
   min-height: 100vh;
   padding: 28px;

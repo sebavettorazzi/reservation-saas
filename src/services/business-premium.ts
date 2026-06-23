@@ -95,17 +95,18 @@ export async function getBusinessPremiumDashboardBySlug(
       revenueByCourt: [],
       recentExpenses: [],
       expenseByCategory: [],
+      recentNotifications: [],
     };
   }
 
   const { start: monthStart, end: monthEnd } = getMonthBoundsUTC(referenceDate);
   const { start: todayStart, end: todayEnd } = getDayBoundsUTC(referenceDate);
 
-  const [monthlyAppointments, monthlyExpenses] = await Promise.all([
+  const [monthlyAppointments, monthlyExpenses, recentNotifications] = await Promise.all([
     prisma.appointment.findMany({
       where: {
         businessId: business.id,
-        status: "confirmed",
+        status: "CONFIRMED",
         startTime: {
           gte: monthStart,
           lte: monthEnd,
@@ -138,6 +139,20 @@ export async function getBusinessPremiumDashboardBySlug(
       orderBy: [{ expenseDate: "desc" }, { createdAt: "desc" }],
       take: 12,
     }),
+    prisma.notification.findMany({
+      where: { businessId: business.id },
+      orderBy: { createdAt: "desc" },
+      take: 12,
+      select: {
+        id: true,
+        recipient: true,
+        body: true,
+        status: true,
+        scheduledAt: true,
+        sentAt: true,
+        createdAt: true,
+      },
+    }),
   ]);
 
   const todayAppointments = monthlyAppointments.filter((appointment) => {
@@ -151,10 +166,10 @@ export async function getBusinessPremiumDashboardBySlug(
   });
 
   const monthlyRevenue = sumAmounts(
-    monthlyAppointments.map((appointment) => appointment.service.price)
+    monthlyAppointments.map((appointment) => appointment.priceSnapshot)
   );
   const todayRevenue = sumAmounts(
-    todayAppointments.map((appointment) => appointment.service.price)
+    todayAppointments.map((appointment) => appointment.priceSnapshot)
   );
   const monthlyExpenseTotal = sumAmounts(
     monthlyExpenses.map((expense) => expense.amount)
@@ -185,7 +200,7 @@ export async function getBusinessPremiumDashboardBySlug(
       reservations: 0,
     };
 
-    serviceEntry.revenue += appointment.service.price;
+    serviceEntry.revenue += appointment.priceSnapshot;
     serviceEntry.reservations += 1;
     revenueByServiceMap.set(appointment.service.id, serviceEntry);
 
@@ -198,7 +213,7 @@ export async function getBusinessPremiumDashboardBySlug(
       };
 
       courtEntry.reservations += 1;
-      courtEntry.revenue += appointment.service.price;
+      courtEntry.revenue += appointment.priceSnapshot;
       revenueByCourtMap.set(appointment.staff.id, courtEntry);
     }
   }
@@ -249,6 +264,7 @@ export async function getBusinessPremiumDashboardBySlug(
     revenueByCourt,
     recentExpenses: monthlyExpenses,
     expenseByCategory,
+    recentNotifications,
   };
 }
 

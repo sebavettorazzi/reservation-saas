@@ -2,6 +2,7 @@ import { randomUUID } from "crypto";
 import "dotenv/config";
 import { PrismaPg } from "@prisma/adapter-pg";
 import { PrismaClient } from "@prisma/client";
+import { hashPassword } from "../src/lib/password";
 
 const adapter = new PrismaPg({
   connectionString: process.env.DATABASE_URL!,
@@ -69,13 +70,13 @@ async function seedSalon() {
     where: { email: "owner@test.com" },
     update: {
       name: "Salon Owner",
-      password: "test1234",
+      passwordHash: hashPassword("test1234"),
     },
     create: {
       id: randomUUID(),
       email: "owner@test.com",
       name: "Salon Owner",
-      password: "test1234",
+      passwordHash: hashPassword("test1234"),
     },
   });
 
@@ -197,7 +198,8 @@ async function seedSalon() {
       staffId: staff[0].id,
       startTime: buildUtcDate(1, 14, 0),
       endTime: buildUtcDate(1, 14, 30),
-      status: "confirmed",
+      status: "CONFIRMED",
+      priceSnapshot: services[0].price,
     },
   });
 
@@ -215,13 +217,13 @@ async function seedSportsComplex() {
     where: { email: "dosdeabril@test.com" },
     update: {
       name: "Administrador 2 de Abril",
-      password: "test1234",
+      passwordHash: hashPassword("test1234"),
     },
     create: {
       id: randomUUID(),
       email: "dosdeabril@test.com",
       name: "Administrador 2 de Abril",
-      password: "test1234",
+      passwordHash: hashPassword("test1234"),
     },
   });
 
@@ -278,6 +280,20 @@ async function seedSportsComplex() {
       },
     }),
   ]);
+
+  await prisma.courtSchedule.createMany({
+    data: courts.flatMap((court) =>
+      Array.from({ length: 7 }, (_, weekday) => ({
+        id: randomUUID(),
+        staffId: court.id,
+        weekday,
+        startMinute: 9 * 60,
+        endMinute: 23 * 60,
+        slotInterval: 30,
+        isOpen: true,
+      }))
+    ),
+  });
 
   const services = await Promise.all([
     prisma.service.create({
@@ -362,7 +378,8 @@ async function seedSportsComplex() {
         staffId: courts[0].id,
         startTime: buildUtcDate(0, 18, 0),
         endTime: buildUtcDate(0, 19, 0),
-        status: "confirmed",
+        status: "CONFIRMED",
+        priceSnapshot: services[0].price,
       },
       {
         id: randomUUID(),
@@ -372,7 +389,8 @@ async function seedSportsComplex() {
         staffId: courts[1].id,
         startTime: buildUtcDate(0, 19, 0),
         endTime: buildUtcDate(0, 20, 0),
-        status: "confirmed",
+        status: "CONFIRMED",
+        priceSnapshot: services[1].price,
       },
       {
         id: randomUUID(),
@@ -382,7 +400,8 @@ async function seedSportsComplex() {
         staffId: courts[2].id,
         startTime: buildUtcDate(0, 20, 30),
         endTime: buildUtcDate(0, 21, 30),
-        status: "confirmed",
+        status: "CONFIRMED",
+        priceSnapshot: services[1].price,
       },
     ],
   });

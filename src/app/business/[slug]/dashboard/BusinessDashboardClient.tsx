@@ -9,6 +9,20 @@ type StaffMember = {
   name: string;
 };
 
+type CourtSchedule = {
+  id: string;
+  weekday: number;
+  startMinute: number;
+  endMinute: number;
+  slotInterval: number;
+  isOpen: boolean;
+};
+
+type Court = StaffMember & { schedules: CourtSchedule[] };
+type DashboardTab = "appointments" | "settings";
+
+const WEEKDAYS = ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"];
+
 type ServiceSummary = {
   id: string;
   name: string;
@@ -93,15 +107,47 @@ function formatInputDate(value: string) {
   return formatDate(`${value}T12:00:00-03:00`);
 }
 
-export default function BusinessDashboardClient({ slug }: { slug: string }) {
+function toTimeInput(minutes: number) {
+  return `${String(Math.floor(minutes / 60)).padStart(2, "0")}:${String(minutes % 60).padStart(2, "0")}`;
+}
+
+function fromTimeInput(value: string) {
+  const [hour, minute] = value.split(":").map(Number);
+  return hour * 60 + minute;
+}
+
+export default function BusinessDashboardClient({
+  slug,
+  activeTab: controlledTab,
+  onTabChange,
+  hideTabs = false,
+}: {
+  slug: string;
+  activeTab?: DashboardTab;
+  onTabChange?: (tab: DashboardTab) => void;
+  hideTabs?: boolean;
+}) {
+  const [localActiveTab, setLocalActiveTab] = useState<DashboardTab>("appointments");
+  const activeTab = controlledTab ?? localActiveTab;
+
+  function selectTab(tab: DashboardTab) {
+    if (onTabChange) {
+      onTabChange(tab);
+      return;
+    }
+
+    setLocalActiveTab(tab);
+  }
   const [business, setBusiness] = useState<BusinessDetail | null>(null);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [courts, setCourts] = useState<Court[]>([]);
   const [selectedDate, setSelectedDate] = useState(toInputDate(new Date()));
   const [priceDrafts, setPriceDrafts] = useState<Record<string, string>>({});
   const [savingServiceId, setSavingServiceId] = useState<string | null>(null);
   const [serviceFeedback, setServiceFeedback] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const [loadingAppointments, setLoadingAppointments] = useState(false);
+  const [savingCourtId, setSavingCourtId] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
@@ -166,6 +212,13 @@ export default function BusinessDashboardClient({ slug }: { slug: string }) {
 
     loadAppointments();
   }, [selectedDate, slug]);
+
+  useEffect(() => {
+    fetch(`/api/businesses/slug/${encodeURIComponent(slug)}/schedules`)
+      .then((response) => response.ok ? response.json() : Promise.reject())
+      .then(setCourts)
+      .catch(() => setError("No se pudieron cargar los horarios de las canchas."));
+  }, [slug]);
 
   const reservedCourts = useMemo(
     () => new Set(appointments.map((appointment) => appointment.staff?.id).filter(Boolean)).size,
@@ -261,6 +314,46 @@ export default function BusinessDashboardClient({ slug }: { slug: string }) {
     }
   }
 
+  function updateSchedule(staffId: string, weekday: number, patch: Partial<CourtSchedule>) {
+    setCourts((current) => current.map((court) => court.id !== staffId ? court : {
+      ...court,
+      schedules: court.schedules.map((schedule) => schedule.weekday === weekday ? { ...schedule, ...patch } : schedule),
+    }));
+  }
+
+  async function saveCourtSchedules(court: Court) {
+    try {
+      setSavingCourtId(court.id);
+      const response = await fetch(`/api/businesses/slug/${encodeURIComponent(slug)}/schedules`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ schedules: court.schedules.map((schedule) => ({
+          staffId: court.id,
+          weekday: schedule.weekday,
+          startMinute: schedule.startMinute,
+          endMinute: schedule.endMinute,
+          slotInterval: schedule.slotInterval,
+          isOpen: schedule.isOpen,
+        })) }),
+      });
+      if (!response.ok) throw new Error();
+      setServiceFeedback(`Horarios de ${court.name} actualizados.`);
+    } catch {
+      setServiceFeedback("No se pudieron guardar los horarios.");
+    } finally {
+      setSavingCourtId(null);
+    }
+  }
+
+  async function updateAppointmentStatus(appointmentId: string, status: "CONFIRMED" | "CANCELLED") {
+    const response = await fetch(`/api/businesses/slug/${encodeURIComponent(slug)}/appointments/${appointmentId}`, {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ status }),
+    });
+    if (response.ok) setAppointments((current) => current.map((appointment) => appointment.id === appointmentId ? { ...appointment, status } : appointment));
+  }
+
   if (loading) {
     return <div className={styles.loadingPage}>Cargando panel...</div>;
   }
@@ -303,9 +396,6 @@ export default function BusinessDashboardClient({ slug }: { slug: string }) {
           <Link href={`/business/${business.slug ?? slug}`} className={styles.secondaryLink}>
             Ver pagina publica
           </Link>
-          <Link href={`/business/${business.slug ?? slug}/premium`} className={styles.primaryLink}>
-            Modulo premium
-          </Link>
         </div>
       </header>
 
@@ -341,8 +431,25 @@ export default function BusinessDashboardClient({ slug }: { slug: string }) {
         </article>
       </section>
 
-      <main className={styles.layout}>
-        <section className={styles.mainPanel}>
+      {!hideTabs && <nav className={styles.tabs} aria-label="Secciones del panel">
+        <button
+          type="button"
+          className={activeTab === "appointments" ? styles.tabActive : styles.tab}
+          onClick={() => selectTab("appointments")}
+        >
+          Turnos
+        </button>
+        <button
+          type="button"
+          className={activeTab === "settings" ? styles.tabActive : styles.tab}
+          onClick={() => selectTab("settings")}
+        >
+          Configuración
+        </button>
+      </nav>}
+
+      <main className={`${styles.layout} ${activeTab === "appointments" ? styles.appointmentsLayout : styles.settingsLayout}`}>
+        {activeTab === "appointments" && <section className={styles.mainPanel}>
           <div className={styles.panelHeader}>
             <div>
               <p className={styles.panelEyebrow}>Agenda</p>
@@ -398,6 +505,12 @@ export default function BusinessDashboardClient({ slug }: { slug: string }) {
                     <strong>{appointment.customer.name}</strong>
                     <p>{appointment.customer.email ?? "Sin email"}</p>
                     <p>{appointment.customer.phone ?? "Sin telefono"}</p>
+                    {appointment.status !== "CONFIRMED" && appointment.status !== "CANCELLED" && (
+                      <button type="button" className={styles.saveButton} onClick={() => updateAppointmentStatus(appointment.id, "CONFIRMED")}>Confirmar</button>
+                    )}
+                    {appointment.status !== "CANCELLED" && (
+                      <button type="button" className={styles.cancelButton} onClick={() => updateAppointmentStatus(appointment.id, "CANCELLED")}>Cancelar</button>
+                    )}
                   </div>
                 </article>
               ))
@@ -408,9 +521,9 @@ export default function BusinessDashboardClient({ slug }: { slug: string }) {
               </div>
             )}
           </div>
-        </section>
+        </section>}
 
-        <aside className={styles.sidePanel}>
+        {activeTab === "settings" && <aside className={styles.sidePanel}>
           <div className={styles.sideCard}>
             <div className={styles.panelHeader}>
               <div>
@@ -460,7 +573,24 @@ export default function BusinessDashboardClient({ slug }: { slug: string }) {
               ))}
             </div>
           </div>
-        </aside>
+          <div className={styles.sideCard}>
+            <div className={styles.panelHeader}><div><p className={styles.panelEyebrow}>Horarios</p><h2>Canchas</h2></div></div>
+            {courts.map((court) => (
+              <div key={court.id} className={styles.serviceEditorCard}>
+                <div className={styles.serviceEditorHeader}><strong>{court.name}</strong></div>
+                {court.schedules.map((schedule) => (
+                  <div key={schedule.weekday} className={styles.scheduleRow}>
+                    <span>{WEEKDAYS[schedule.weekday]}</span>
+                    <input type="checkbox" checked={schedule.isOpen} onChange={(event) => updateSchedule(court.id, schedule.weekday, { isOpen: event.target.checked })} />
+                    <input type="time" value={toTimeInput(schedule.startMinute)} disabled={!schedule.isOpen} onChange={(event) => updateSchedule(court.id, schedule.weekday, { startMinute: fromTimeInput(event.target.value) })} />
+                    <input type="time" value={toTimeInput(schedule.endMinute)} disabled={!schedule.isOpen} onChange={(event) => updateSchedule(court.id, schedule.weekday, { endMinute: fromTimeInput(event.target.value) })} />
+                  </div>
+                ))}
+                <button type="button" className={styles.saveButton} disabled={savingCourtId === court.id} onClick={() => saveCourtSchedules(court)}>{savingCourtId === court.id ? "Guardando..." : "Guardar horarios"}</button>
+              </div>
+            ))}
+          </div>
+        </aside>}
       </main>
     </div>
   );

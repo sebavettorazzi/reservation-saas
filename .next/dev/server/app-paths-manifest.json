@@ -1,9 +1,0 @@
-{
-  "/api/appointments/route": "app/api/appointments/route.js",
-  "/api/businesses/slug/[slug]/route": "app/api/businesses/slug/[slug]/route.js",
-  "/_not-found/page": "app/_not-found/page.js",
-  "/api/availability/route": "app/api/availability/route.js",
-  "/page": "app/page.js",
-  "/booking/page": "app/booking/page.js",
-  "/business/[slug]/page": "app/business/[slug]/page.js"
-}

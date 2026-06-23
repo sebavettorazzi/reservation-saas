@@ -3,195 +3,136 @@ import { prisma } from "../lib/prisma";
 type Slot = {
   start: Date;
   end: Date;
-  availableStaff: {
-    id: string;
-    name: string;
-  }[];
+  availableStaff: { id: string; name: string }[];
   bestStaffId: string | null;
 };
 
-type AppointmentInterval = {
-  staffId: string | null;
-  startTime: Date;
-  endTime: Date;
-};
+type DateParts = { year: number; month: number; day: number };
 
-// =========================
-// TIME HELPERS
-// =========================
+const ARGENTINA_UTC_OFFSET_HOURS = 3;
 
-function getDayBoundsUTC(date: Date) {
-  const start = new Date(Date.UTC(
-    date.getUTCFullYear(),
-    date.getUTCMonth(),
-    date.getUTCDate(),
-    0, 0, 0
-  ));
-
-  const end = new Date(Date.UTC(
-    date.getUTCFullYear(),
-    date.getUTCMonth(),
-    date.getUTCDate(),
-    23, 59, 59, 999
-  ));
-
-  return { start, end };
-}
-
-// =========================
-// SLOT GENERATOR
-// =========================
-
-function generateTimeSlots(
-  date: Date,
-  duration: number,
-  openHour = 7,
-  closeHour = 22
-) {
-  const slots: { start: Date; end: Date }[] = [];
-
-  const start = new Date(Date.UTC(
-    date.getUTCFullYear(),
-    date.getUTCMonth(),
-    date.getUTCDate(),
-    openHour,
-    0,
-    0
-  ));
-
-  const endDay = new Date(Date.UTC(
-    date.getUTCFullYear(),
-    date.getUTCMonth(),
-    date.getUTCDate(),
-    closeHour,
-    0,
-    0
-  ));
-
-  while (start < endDay) {
-    const end = new Date(start);
-    end.setUTCMinutes(end.getUTCMinutes() + duration);
-
-    slots.push({ start: new Date(start), end });
-
-    start.setUTCMinutes(start.getUTCMinutes() + 30);
+function getArgentinaDateParts(value: Date | string): DateParts {
+  if (typeof value === "string" && /^\d{4}-\d{2}-\d{2}$/.test(value)) {
+    const [year, month, day] = value.split("-").map(Number);
+    return { year, month, day };
   }
 
-  return slots;
+  const date = typeof value === "string" ? new Date(value) : value;
+  const formatted = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Argentina/Cordoba",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  }).formatToParts(date);
+
+  return {
+    year: Number(formatted.find((part) => part.type === "year")?.value),
+    month: Number(formatted.find((part) => part.type === "month")?.value),
+    day: Number(formatted.find((part) => part.type === "day")?.value),
+  };
 }
 
-// =========================
-// BUILD BUSY MAP (LEVEL 3 CORE)
-// =========================
+function argentinaDateAt(parts: DateParts, minutes: number) {
+  const hour = Math.floor(minutes / 60);
+  const minute = minutes % 60;
 
-function buildBusyMap(appointments: AppointmentInterval[]) {
-  const map = new Map<string, { start: Date; end: Date }[]>();
-
-  for (const a of appointments) {
-    if (!a.staffId) continue;
-
-    if (!map.has(a.staffId)) {
-      map.set(a.staffId, []);
-    }
-
-    map.get(a.staffId)!.push({
-      start: a.startTime,
-      end: a.endTime,
-    });
-  }
-
-  return map;
+  return new Date(Date.UTC(parts.year, parts.month - 1, parts.day, hour + ARGENTINA_UTC_OFFSET_HOURS, minute));
 }
 
-// =========================
-// CONFLICT CHECK O(1-ish)
-// =========================
+function getArgentinaDayBounds(parts: DateParts) {
+  return {
+    start: argentinaDateAt(parts, 0),
+    end: argentinaDateAt({ ...parts, day: parts.day + 1 }, 0),
+  };
+}
 
-function isStaffBusy(
+function getWeekday(parts: DateParts) {
+  return new Date(Date.UTC(parts.year, parts.month - 1, parts.day, 12)).getUTCDay();
+}
+
+function staffIsBusy(
   staffId: string,
   slot: { start: Date; end: Date },
-  busyMap: Map<string, { start: Date; end: Date }[]>
+  appointments: Array<{ staffId: string | null; startTime: Date; endTime: Date }>
 ) {
-  const intervals = busyMap.get(staffId);
-  if (!intervals) return false;
-
-  for (const i of intervals) {
-    const overlap =
-      i.start < slot.end &&
-      i.end > slot.start;
-
-    if (overlap) return true;
-  }
-
-  return false;
+  return appointments.some(
+    (appointment) =>
+      appointment.staffId === staffId &&
+      appointment.startTime < slot.end &&
+      appointment.endTime > slot.start
+  );
 }
-
-// =========================
-// ENGINE
-// =========================
 
 export async function getAvailableSlots(
   businessId: string,
   serviceId: string,
-  date: Date
+  date: Date | string
 ): Promise<Slot[]> {
-
-  // 1. Service + staff
-  const service = await prisma.service.findUnique({
-    where: { id: serviceId },
+  const parts = getArgentinaDateParts(date);
+  const weekday = getWeekday(parts);
+  const service = await prisma.service.findFirst({
+    where: { id: serviceId, businessId },
     include: {
-      staff: { include: { staff: true } },
-    },
-  });
-
-  if (!service) throw new Error("Service not found");
-
-  const staff = service.staff.map((s) => s.staff);
-
-  // 2. Day bounds
-  const { start, end } = getDayBoundsUTC(date);
-
-  // 3. Appointments (only once)
-  const appointments = await prisma.appointment.findMany({
-    where: {
-      businessId,
-      startTime: {
-        gte: start,
-        lt: end,
+      staff: {
+        include: {
+          staff: {
+            include: { schedules: { where: { weekday } } },
+          },
+        },
       },
     },
   });
 
-  // 4. BUILD INDEX (🔥 KEY OPTIMIZATION)
-  const busyMap = buildBusyMap(appointments);
-
-  // 5. Slots
-  const slots = generateTimeSlots(date, service.duration);
-
-  const result: Slot[] = [];
-
-  for (const slot of slots) {
-
-    const availableStaff = [];
-
-    for (const s of staff) {
-      if (!isStaffBusy(s.id, slot, busyMap)) {
-        availableStaff.push({
-          id: s.id,
-          name: s.name,
-        });
-      }
-    }
-
-    if (availableStaff.length === 0) continue;
-
-    result.push({
-      start: slot.start,
-      end: slot.end,
-      availableStaff,
-      bestStaffId: availableStaff[0]?.id ?? null,
-    });
+  if (!service) {
+    throw new Error("Service not found");
   }
 
-  return result;
+  const { start, end } = getArgentinaDayBounds(parts);
+  const appointments = await prisma.appointment.findMany({
+    where: {
+      businessId,
+      status: { not: "CANCELLED" },
+      startTime: { gte: start, lt: end },
+    },
+    select: { staffId: true, startTime: true, endTime: true },
+  });
+  const slots = new Map<string, Slot>();
+
+  for (const staffService of service.staff) {
+    const staff = staffService.staff;
+    const schedule = staff.schedules[0];
+
+    if (!schedule?.isOpen) {
+      continue;
+    }
+
+    for (
+      let minute = schedule.startMinute;
+      minute + service.duration <= schedule.endMinute;
+      minute += schedule.slotInterval
+    ) {
+      const slot = {
+        start: argentinaDateAt(parts, minute),
+        end: argentinaDateAt(parts, minute + service.duration),
+      };
+
+      if (staffIsBusy(staff.id, slot, appointments)) {
+        continue;
+      }
+
+      const key = slot.start.toISOString();
+      const current = slots.get(key) ?? {
+        ...slot,
+        availableStaff: [],
+        bestStaffId: null,
+      };
+      current.availableStaff.push({ id: staff.id, name: staff.name });
+      current.bestStaffId ??= staff.id;
+      slots.set(key, current);
+    }
+  }
+
+  return Array.from(slots.values()).sort(
+    (left, right) => left.start.getTime() - right.start.getTime()
+  );
 }

@@ -2,6 +2,7 @@
 
 import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
+import BusinessDashboardClient from "../dashboard/BusinessDashboardClient";
 import styles from "./page.module.css";
 
 type PremiumMetric = {
@@ -70,6 +71,15 @@ type PremiumPayload = {
     total: number;
     count: number;
   }>;
+  recentNotifications: Array<{
+    id: string;
+    recipient: string;
+    body: string;
+    status: "PENDING" | "SIMULATED" | "SENT" | "FAILED";
+    scheduledAt: string;
+    sentAt: string | null;
+    createdAt: string;
+  }>;
 };
 
 type ExpenseForm = {
@@ -127,7 +137,7 @@ async function fetchPremiumDashboard(slug: string, selectedMonth: string) {
   return (await response.json()) as PremiumPayload;
 }
 
-export default function PremiumDashboardClient({ slug }: { slug: string }) {
+function PremiumAnalyticsContent({ slug }: { slug: string }) {
   const [selectedMonth, setSelectedMonth] = useState(toMonthInput(new Date()));
   const [dashboard, setDashboard] = useState<PremiumPayload | null>(null);
   const [expenseForm, setExpenseForm] = useState<ExpenseForm>(EMPTY_EXPENSE_FORM);
@@ -459,6 +469,29 @@ export default function PremiumDashboardClient({ slug }: { slug: string }) {
           <div className={styles.sideCard}>
             <div className={styles.sectionHeader}>
               <div>
+                <p className={styles.sectionEyebrow}>WhatsApp</p>
+                <h2>Mensajes simulados</h2>
+              </div>
+            </div>
+            <div className={styles.expenseList}>
+              {dashboard.recentNotifications.length > 0 ? (
+                dashboard.recentNotifications.map((notification) => (
+                  <div key={notification.id} className={styles.expenseCard}>
+                    <div>
+                      <strong>{notification.recipient}</strong>
+                      <span>{notification.status === "PENDING" ? "Programado" : "Simulado"}</span>
+                    </div>
+                    <p>{notification.body}</p>
+                  </div>
+                ))
+              ) : (
+                <p className={styles.subtle}>Las reservas Premium van a generar los mensajes aquí.</p>
+              )}
+            </div>
+          </div>
+          <div className={styles.sideCard}>
+            <div className={styles.sectionHeader}>
+              <div>
                 <p className={styles.sectionEyebrow}>Gastos</p>
                 <h2>Registrar egreso</h2>
               </div>
@@ -621,5 +654,47 @@ export default function PremiumDashboardClient({ slug }: { slug: string }) {
         </aside>
       </main>
     </div>
+  );
+}
+
+export default function PremiumDashboardClient({ slug }: { slug: string }) {
+  const [activeTab, setActiveTab] = useState<"appointments" | "settings" | "analytics">("appointments");
+
+  return (
+    <>
+      <nav className={styles.dashboardTabs} aria-label="Panel Premium">
+        <button
+          type="button"
+          className={activeTab === "appointments" ? styles.dashboardTabActive : styles.dashboardTab}
+          onClick={() => setActiveTab("appointments")}
+        >
+          Turnos
+        </button>
+        <button
+          type="button"
+          className={activeTab === "settings" ? styles.dashboardTabActive : styles.dashboardTab}
+          onClick={() => setActiveTab("settings")}
+        >
+          Configuración
+        </button>
+        <button
+          type="button"
+          className={activeTab === "analytics" ? styles.dashboardTabActive : styles.dashboardTab}
+          onClick={() => setActiveTab("analytics")}
+        >
+          Estadísticas
+        </button>
+      </nav>
+      {activeTab === "analytics" ? (
+        <PremiumAnalyticsContent slug={slug} />
+      ) : (
+        <BusinessDashboardClient
+          slug={slug}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
+          hideTabs
+        />
+      )}
+    </>
   );
 }

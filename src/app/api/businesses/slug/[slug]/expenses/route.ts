@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { getCurrentUser, getOwnedBusiness } from "@/lib/auth";
 import { CreateExpenseSchema } from "@/contracts/expense.contract";
 import { createBusinessExpenseBySlug } from "@/services/business-premium";
 
@@ -11,6 +12,11 @@ type Context = {
 export async function POST(req: Request, context: Context) {
   try {
     const { slug } = await context.params;
+    const user = await getCurrentUser();
+
+    if (!user || !(await getOwnedBusiness(user.id, slug))) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
     const body = await req.json();
     const parsed = CreateExpenseSchema.safeParse(body);
 

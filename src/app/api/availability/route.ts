@@ -28,7 +28,7 @@ export async function GET(req: Request) {
     const result = await getAvailableSlots(
       businessId,
       serviceId,
-      new Date(date)
+      date
     );
 
     return NextResponse.json(result);
