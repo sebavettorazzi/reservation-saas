@@ -1,4 +1,4 @@
-# Reservation SaaS
+# Reservation SaaS (proyecto personal en desarrollo)
 
 SaaS multi-tenant de reservas construido con Next.js, TypeScript, Prisma y PostgreSQL.
 
