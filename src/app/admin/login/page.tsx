@@ -22,14 +22,15 @@ export default function AdminLoginPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password }),
       });
-      const payload = await response.json();
+      const payload = (await response.json()) as { error?: string; redirectTo?: string };
 
       if (!response.ok) {
         throw new Error(payload.error ?? "No se pudo iniciar sesión.");
       }
 
       const next = new URLSearchParams(window.location.search).get("next");
-      router.replace(next?.startsWith("/business/") ? next : "/");
+      const redirectTo = next?.startsWith("/business/") ? next : payload.redirectTo ?? "/";
+      router.replace(redirectTo);
       router.refresh();
     } catch (loginError) {
       setError(loginError instanceof Error ? loginError.message : "No se pudo iniciar sesión.");

@@ -12,7 +12,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Email y contraseña son obligatorios." }, { status: 400 });
     }
 
-    const user = await prisma.user.findUnique({ where: { email } });
+    const user = await prisma.user.findUnique({
+      where: { email },
+      include: {
+        businesses: {
+          orderBy: { createdAt: "asc" },
+          select: { slug: true },
+          take: 1,
+        },
+      },
+    });
 
     if (!user || !verifyPassword(body.password, user.passwordHash)) {
       return NextResponse.json({ error: "Credenciales inválidas." }, { status: 401 });
@@ -25,8 +34,9 @@ export async function POST(req: Request) {
       });
     }
 
+    const redirectTo = user.businesses[0]?.slug ? `/business/${user.businesses[0].slug}/dashboard` : "/";
     const { token, expiresAt } = await createUserSession(user.id);
-    const response = NextResponse.json({ name: user.name, email: user.email });
+    const response = NextResponse.json({ name: user.name, email: user.email, redirectTo });
 
     response.cookies.set({
       name: SESSION_COOKIE_NAME,
