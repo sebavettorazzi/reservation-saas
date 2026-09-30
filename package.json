@@ -8,6 +8,8 @@
   "scripts": {
     "dev": "next dev --webpack",
     "clean": "node scripts/clean.mjs",
+    "doctor": "node scripts/doctor.cjs",
+    "smoke": "node scripts/smoke-test.cjs",
     "check": "npm run lint && npm run typecheck",
     "typecheck": "tsc --noEmit",
     "build": "next build",
