@@ -71,6 +71,7 @@ Admin demo:
 | `npm run db:down` | Detiene PostgreSQL. |
 | `npm run db:generate` | Genera Prisma Client. |
 | `npm run db:migrate` | Aplica las migraciones locales. |
+| `npm run db:deploy` | Aplica migraciones en produccion. |
 | `npm run db:seed` | Carga datos demo. |
 | `npm run db:verify` | Verifica que el motor de disponibilidad responda. |
 
@@ -92,6 +93,10 @@ Admin demo:
 ## Compatibilidad
 
 No hay scripts que dependan de Bash, PowerShell o archivos `.bat`. Docker Compose mantiene la misma base PostgreSQL en macOS y Windows; `.gitattributes` normaliza los finales de linea y los archivos generados quedan fuera de Git.
+
+## Deploy
+
+La guia de publicacion esta en [`docs/DEPLOY.md`](docs/DEPLOY.md). Incluye variables de entorno, comandos para migraciones, build/start y checklist para Railway, Render o VPS.
 
 ## Retomar despues de varios dias
 
