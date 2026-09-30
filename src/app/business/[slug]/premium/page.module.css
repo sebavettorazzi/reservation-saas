@@ -130,45 +130,10 @@
 }
 
 .periodControls {
-  display: grid;
-  gap: 10px;
-}
-
-.periodInputs {
   display: flex;
   align-items: center;
   gap: 10px;
   flex-wrap: wrap;
-}
-
-.segmentedControl {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(112px, 1fr));
-  gap: 4px;
-  padding: 4px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.06);
-  border: 1px solid rgba(255, 255, 255, 0.08);
-}
-
-.segmentedButton,
-.segmentedActive {
-  min-height: 34px;
-  padding: 0 14px;
-  border: 0;
-  border-radius: 999px;
-  font-weight: 700;
-  cursor: pointer;
-}
-
-.segmentedButton {
-  color: rgba(255, 237, 213, 0.72);
-  background: transparent;
-}
-
-.segmentedActive {
-  color: #1c1009;
-  background: rgba(255, 247, 237, 0.92);
 }
 
 .monthPicker {
@@ -496,11 +461,6 @@
   }
 
   .periodControls,
-  .periodInputs {
-    width: 100%;
-  }
-
-  .periodInputs,
   .monthPicker,
   .monthPicker input,
   .monthPicker select {
