@@ -21,6 +21,7 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:seed": "prisma db seed",
+    "db:simulate-year": "node scripts/seed-year-simulation.cjs",
     "db:verify": "ts-node -r dotenv/config src/scripts/verify-availability.ts",
     "notifications:dispatch": "ts-node -r dotenv/config src/scripts/dispatch-notifications.ts",
     "admin:reset-demo": "node scripts/reset-demo-admin.cjs"

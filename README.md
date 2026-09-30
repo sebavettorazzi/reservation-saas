@@ -73,6 +73,7 @@ Admin demo:
 | `npm run db:migrate` | Aplica las migraciones locales. |
 | `npm run db:deploy` | Aplica migraciones en produccion. |
 | `npm run db:seed` | Carga datos demo. |
+| `npm run db:simulate-year` | Carga un ano de turnos, clientes y gastos simulados para probar el panel premium. |
 | `npm run db:verify` | Verifica que el motor de disponibilidad responda. |
 
 ## Estructura
@@ -125,3 +126,11 @@ El smoke test usa por defecto `http://localhost:3001`, el negocio `2-de-abril` y
 ```bash
 SMOKE_BASE_URL=http://localhost:3000 SMOKE_BUSINESS_SLUG=2-de-abril npm run smoke
 ```
+
+Para probar estadisticas y finanzas con un ano de actividad simulada:
+
+```bash
+npm run db:simulate-year
+```
+
+El simulador usa pesos argentinos y solo limpia datos marcados como simulados.

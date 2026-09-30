@@ -688,7 +688,7 @@ function PremiumAnalyticsContent({ slug, view }: { slug: string; view: "analytic
 }
 
 export default function PremiumDashboardClient({ slug }: { slug: string }) {
-  const [activeTab, setActiveTab] = useState<"appointments" | "settings" | "analytics">("appointments");
+  const [activeTab, setActiveTab] = useState<PremiumTab>("appointments");
 
   return (
     <>
@@ -714,14 +714,21 @@ export default function PremiumDashboardClient({ slug }: { slug: string }) {
         >
           Estadísticas
         </button>
+        <button
+          type="button"
+          className={activeTab === "finances" ? styles.dashboardTabActive : styles.dashboardTab}
+          onClick={() => setActiveTab("finances")}
+        >
+          Finanzas
+        </button>
       </nav>
-      {activeTab === "analytics" ? (
-        <PremiumAnalyticsContent slug={slug} />
+      {activeTab === "analytics" || activeTab === "finances" ? (
+        <PremiumAnalyticsContent slug={slug} view={activeTab} />
       ) : (
         <BusinessDashboardClient
           slug={slug}
           activeTab={activeTab}
-          onTabChange={setActiveTab}
+          onTabChange={(tab) => setActiveTab(tab)}
           hideTabs
         />
       )}
