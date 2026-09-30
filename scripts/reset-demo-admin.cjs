@@ -9,6 +9,8 @@ const { PrismaClient } = require("@prisma/client");
 const prisma = new PrismaClient({
   adapter: new PrismaPg({ connectionString: process.env.DATABASE_URL }),
 });
+const DEMO_ADMIN_EMAIL = process.env.DEMO_ADMIN_EMAIL ?? "dosdeabril@test.com";
+const DEMO_ADMIN_PASSWORD = process.env.DEMO_ADMIN_PASSWORD ?? "test1234";
 
 function hashPassword(password) {
   const salt = randomBytes(16).toString("hex");
@@ -18,15 +20,15 @@ function hashPassword(password) {
 
 async function main() {
   const result = await prisma.user.updateMany({
-    where: { email: "dosdeabril@test.com" },
-    data: { passwordHash: hashPassword("test1234") },
+    where: { email: DEMO_ADMIN_EMAIL },
+    data: { passwordHash: hashPassword(DEMO_ADMIN_PASSWORD) },
   });
 
   if (result.count !== 1) {
-    throw new Error("No se encontró la cuenta demo de 2 de Abril.");
+    throw new Error(`No se encontró la cuenta demo ${DEMO_ADMIN_EMAIL}.`);
   }
 
-  console.log("Cuenta demo actualizada.");
+  console.log(`Cuenta demo actualizada: ${DEMO_ADMIN_EMAIL}.`);
 }
 
 main()

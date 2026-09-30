@@ -9,6 +9,8 @@ const adapter = new PrismaPg({
 });
 
 const prisma = new PrismaClient({ adapter });
+const DEMO_ADMIN_EMAIL = process.env.DEMO_ADMIN_EMAIL ?? "dosdeabril@test.com";
+const DEMO_ADMIN_PASSWORD = process.env.DEMO_ADMIN_PASSWORD ?? "test1234";
 
 function buildUtcDate(daysFromToday: number, hour: number, minute = 0) {
   const now = new Date();
@@ -214,16 +216,16 @@ async function seedSalon() {
 
 async function seedSportsComplex() {
   const owner = await prisma.user.upsert({
-    where: { email: "dosdeabril@test.com" },
+    where: { email: DEMO_ADMIN_EMAIL },
     update: {
       name: "Administrador 2 de Abril",
-      passwordHash: hashPassword("test1234"),
+      passwordHash: hashPassword(DEMO_ADMIN_PASSWORD),
     },
     create: {
       id: randomUUID(),
-      email: "dosdeabril@test.com",
+      email: DEMO_ADMIN_EMAIL,
       name: "Administrador 2 de Abril",
-      passwordHash: hashPassword("test1234"),
+      passwordHash: hashPassword(DEMO_ADMIN_PASSWORD),
     },
   });
 
@@ -459,6 +461,7 @@ async function main() {
     sportsSlug: sports.business.slug,
     sportsDashboard: `/business/${sports.business.slug}/dashboard`,
     sportsPublic: `/business/${sports.business.slug}`,
+    demoAdminEmail: DEMO_ADMIN_EMAIL,
   });
 }
 
