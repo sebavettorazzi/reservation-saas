@@ -31,6 +31,46 @@ function getArgentinaPeriodBoundsUTC(selectedMonth: string, months: number) {
   return { start, end, months: safeMonths };
 }
 
+function getArgentinaDateRangeBoundsUTC(startDate: string, endDate: string) {
+  const [startYear, startMonth, startDay] = startDate.split("-").map(Number);
+  const [endYear, endMonth, endDay] = endDate.split("-").map(Number);
+  const startOfStartDate = new Date(
+    Date.UTC(startYear, startMonth - 1, startDay, ARGENTINA_UTC_OFFSET_HOURS)
+  );
+  const endOfStartDate = new Date(
+    Date.UTC(startYear, startMonth - 1, startDay + 1, ARGENTINA_UTC_OFFSET_HOURS) - 1
+  );
+  const startOfEndDate = new Date(
+    Date.UTC(endYear, endMonth - 1, endDay, ARGENTINA_UTC_OFFSET_HOURS)
+  );
+  const endOfEndDate = new Date(
+    Date.UTC(endYear, endMonth - 1, endDay + 1, ARGENTINA_UTC_OFFSET_HOURS) - 1
+  );
+
+  if (startOfStartDate.getTime() > endOfEndDate.getTime()) {
+    return {
+      start: startOfEndDate,
+      end: endOfStartDate,
+      months: null,
+      mode: "custom" as const,
+    };
+  }
+
+  return { start: startOfStartDate, end: endOfEndDate, months: null, mode: "custom" as const };
+}
+
+type PremiumDashboardPeriodInput =
+  | {
+      mode: "preset";
+      selectedMonth: string;
+      months: number;
+    }
+  | {
+      mode: "custom";
+      startDate: string;
+      endDate: string;
+    };
+
 function sumAmounts(values: number[]) {
   return values.reduce((total, current) => total + current, 0);
 }
@@ -51,8 +91,7 @@ type BusinessBase = {
 
 export async function getBusinessPremiumDashboardBySlug(
   slug: string,
-  selectedMonth: string,
-  months = 1
+  periodInput: PremiumDashboardPeriodInput
 ) {
   const business = await prisma.business.findUnique({
     where: { slug },
@@ -90,11 +129,14 @@ export async function getBusinessPremiumDashboardBySlug(
     };
   }
 
-  const {
-    start: periodStart,
-    end: periodEnd,
-    months: selectedMonths,
-  } = getArgentinaPeriodBoundsUTC(selectedMonth, months);
+  const period =
+    periodInput.mode === "custom"
+      ? getArgentinaDateRangeBoundsUTC(periodInput.startDate, periodInput.endDate)
+      : {
+          ...getArgentinaPeriodBoundsUTC(periodInput.selectedMonth, periodInput.months),
+          mode: "preset" as const,
+        };
+  const { start: periodStart, end: periodEnd } = period;
   const { start: todayStart, end: todayEnd } = getArgentinaDayBoundsUTC(new Date());
 
   const [periodAppointments, periodExpenses, recentNotifications] = await Promise.all([
@@ -243,7 +285,8 @@ export async function getBusinessPremiumDashboardBySlug(
     period: {
       start: periodStart,
       end: periodEnd,
-      months: selectedMonths,
+      months: period.months,
+      mode: period.mode,
     },
     metrics: {
       monthlyRevenue,

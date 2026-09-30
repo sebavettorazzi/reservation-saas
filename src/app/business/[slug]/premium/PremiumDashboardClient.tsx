@@ -47,7 +47,8 @@ type PremiumPayload = {
   period?: {
     start: string;
     end: string;
-    months: number;
+    months: number | null;
+    mode: "preset" | "custom";
   };
   metrics: PremiumMetric | null;
   revenueByService: Array<{
@@ -95,6 +96,8 @@ type ExpenseForm = {
   notes: string;
 };
 type PremiumTab = "appointments" | "settings" | "analytics" | "finances";
+type RangeMode = "preset" | "custom";
+type PresetMonths = 1 | 3 | 6 | 12;
 
 const EMPTY_EXPENSE_FORM: ExpenseForm = {
   title: "",
@@ -127,6 +130,12 @@ function toMonthInput(date: Date) {
   return date.toISOString().slice(0, 7);
 }
 
+function toDateInput(date: Date) {
+  return date.toLocaleDateString("en-CA", {
+    timeZone: "America/Argentina/Cordoba",
+  });
+}
+
 function shiftMonth(monthValue: string, offset: number) {
   const [year, month] = monthValue.split("-").map(Number);
   return new Date(Date.UTC(year, month - 1 + offset, 1, 12)).toISOString().slice(0, 7);
@@ -150,11 +159,22 @@ function formatPeriodLabel(selectedMonth: string, months: number) {
   )}`;
 }
 
-async function fetchPremiumDashboard(slug: string, selectedMonth: string, selectedMonths: number) {
-  const params = new URLSearchParams({
-    month: selectedMonth,
-    months: String(selectedMonths),
-  });
+async function fetchPremiumDashboard(
+  slug: string,
+  range:
+    | { mode: "preset"; selectedMonth: string; selectedMonths: number }
+    | { mode: "custom"; startDate: string; endDate: string }
+) {
+  const params =
+    range.mode === "custom"
+      ? new URLSearchParams({
+          start: range.startDate,
+          end: range.endDate,
+        })
+      : new URLSearchParams({
+          month: range.selectedMonth,
+          months: String(range.selectedMonths),
+        });
 
   const response = await fetch(
     `/api/businesses/slug/${encodeURIComponent(slug)}/premium?${params.toString()}`
@@ -168,8 +188,12 @@ async function fetchPremiumDashboard(slug: string, selectedMonth: string, select
 }
 
 function PremiumAnalyticsContent({ slug, view }: { slug: string; view: "analytics" | "finances" }) {
+  const todayInput = toDateInput(new Date());
   const [selectedMonth, setSelectedMonth] = useState(toMonthInput(new Date()));
-  const [selectedMonths, setSelectedMonths] = useState(1);
+  const [selectedMonths, setSelectedMonths] = useState<PresetMonths>(1);
+  const [rangeMode, setRangeMode] = useState<RangeMode>("preset");
+  const [startDate, setStartDate] = useState(toDateInput(new Date(Date.now() - 29 * 24 * 60 * 60 * 1000)));
+  const [endDate, setEndDate] = useState(todayInput);
   const [dashboard, setDashboard] = useState<PremiumPayload | null>(null);
   const [expenseForm, setExpenseForm] = useState<ExpenseForm>(EMPTY_EXPENSE_FORM);
   const [loading, setLoading] = useState(true);
@@ -184,7 +208,12 @@ function PremiumAnalyticsContent({ slug, view }: { slug: string; view: "analytic
         setLoading(true);
         setError(null);
 
-        const payload = await fetchPremiumDashboard(slug, selectedMonth, selectedMonths);
+        const payload = await fetchPremiumDashboard(
+          slug,
+          rangeMode === "custom"
+            ? { mode: "custom", startDate, endDate }
+            : { mode: "preset", selectedMonth, selectedMonths }
+        );
         setDashboard(payload);
       } catch (loadError) {
         console.error(loadError);
@@ -195,7 +224,7 @@ function PremiumAnalyticsContent({ slug, view }: { slug: string; view: "analytic
     }
 
     loadDashboard();
-  }, [selectedMonth, selectedMonths, slug]);
+  }, [endDate, rangeMode, selectedMonth, selectedMonths, slug, startDate]);
 
   const maxServiceRevenue = useMemo(
     () =>
@@ -265,7 +294,12 @@ function PremiumAnalyticsContent({ slug, view }: { slug: string; view: "analytic
         expenseDate: expenseForm.expenseDate,
       });
       setFeedback("Gasto registrado correctamente.");
-      const refreshedPayload = await fetchPremiumDashboard(slug, selectedMonth, selectedMonths);
+      const refreshedPayload = await fetchPremiumDashboard(
+        slug,
+        rangeMode === "custom"
+          ? { mode: "custom", startDate, endDate }
+          : { mode: "preset", selectedMonth, selectedMonths }
+      );
       setDashboard(refreshedPayload);
     } catch (submitError) {
       console.error(submitError);
@@ -319,7 +353,12 @@ function PremiumAnalyticsContent({ slug, view }: { slug: string; view: "analytic
   }
 
   const metrics = dashboard.metrics;
-  const periodLabel = formatPeriodLabel(selectedMonth, selectedMonths);
+  const periodLabel =
+    rangeMode === "custom"
+      ? `${new Date(`${startDate}T12:00:00.000Z`).toLocaleDateString("es-AR")} - ${new Date(
+          `${endDate}T12:00:00.000Z`
+        ).toLocaleDateString("es-AR")}`
+      : formatPeriodLabel(selectedMonth, selectedMonths);
 
   return (
     <div className={styles.page}>
@@ -335,30 +374,82 @@ function PremiumAnalyticsContent({ slug, view }: { slug: string; view: "analytic
         </div>
 
         <div className={styles.heroActions}>
-          <label className={styles.monthPicker}>
-            <span>Hasta</span>
-            <input
-              type="month"
-              value={selectedMonth}
-              onChange={(event) => {
-                if (event.target.value) {
-                  setSelectedMonth(event.target.value);
-                }
-              }}
-            />
-          </label>
-          <label className={styles.monthPicker}>
-            <span>Periodo</span>
-            <select
-              value={selectedMonths}
-              onChange={(event) => setSelectedMonths(Number(event.target.value))}
-            >
-              <option value={1}>1 mes</option>
-              <option value={3}>3 meses</option>
-              <option value={6}>6 meses</option>
-              <option value={12}>12 meses</option>
-            </select>
-          </label>
+          <div className={styles.periodControls}>
+            <div className={styles.segmentedControl} aria-label="Tipo de periodo">
+              <button
+                type="button"
+                className={rangeMode === "preset" ? styles.segmentedActive : styles.segmentedButton}
+                onClick={() => setRangeMode("preset")}
+              >
+                Rapido
+              </button>
+              <button
+                type="button"
+                className={rangeMode === "custom" ? styles.segmentedActive : styles.segmentedButton}
+                onClick={() => setRangeMode("custom")}
+              >
+                Personalizado
+              </button>
+            </div>
+
+            {rangeMode === "preset" ? (
+              <div className={styles.periodInputs}>
+                <label className={styles.monthPicker}>
+                  <span>Hasta</span>
+                  <input
+                    type="month"
+                    value={selectedMonth}
+                    onChange={(event) => {
+                      if (event.target.value) {
+                        setSelectedMonth(event.target.value);
+                      }
+                    }}
+                  />
+                </label>
+                <label className={styles.monthPicker}>
+                  <span>Periodo</span>
+                  <select
+                    value={selectedMonths}
+                    onChange={(event) =>
+                      setSelectedMonths(Number(event.target.value) as PresetMonths)
+                    }
+                  >
+                    <option value={1}>1 mes</option>
+                    <option value={3}>3 meses</option>
+                    <option value={6}>6 meses</option>
+                    <option value={12}>12 meses</option>
+                  </select>
+                </label>
+              </div>
+            ) : (
+              <div className={styles.periodInputs}>
+                <label className={styles.monthPicker}>
+                  <span>Desde</span>
+                  <input
+                    type="date"
+                    value={startDate}
+                    onChange={(event) => {
+                      if (event.target.value) {
+                        setStartDate(event.target.value);
+                      }
+                    }}
+                  />
+                </label>
+                <label className={styles.monthPicker}>
+                  <span>Hasta</span>
+                  <input
+                    type="date"
+                    value={endDate}
+                    onChange={(event) => {
+                      if (event.target.value) {
+                        setEndDate(event.target.value);
+                      }
+                    }}
+                  />
+                </label>
+              </div>
+            )}
+          </div>
           <Link
             href={`/business/${dashboard.business.slug ?? slug}/dashboard`}
             className={styles.secondaryLink}
