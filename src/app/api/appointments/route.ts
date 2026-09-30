@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { Prisma } from "@prisma/client";
 import { prisma } from "@/lib/prisma";
 import { CreateAppointmentSchema } from "@/contracts/appointment.contract";
 import { getAvailableSlots } from "@/services/availability-engine";
@@ -90,6 +91,7 @@ export async function POST(req: Request) {
     const conflict = await prisma.appointment.findFirst({
       where: {
         staffId: assignedStaffId,
+        status: { not: "CANCELLED" },
         startTime: { lt: endDate },
         endTime: { gt: startDate },
       },
@@ -199,6 +201,13 @@ export async function POST(req: Request) {
     return NextResponse.json(appointment, { status: 201 });
   } catch (error) {
     console.error("Appointments error:", error);
+
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === "P2002") {
+      return NextResponse.json(
+        { error: "Slot already booked" },
+        { status: 409 }
+      );
+    }
 
     return NextResponse.json(
       { error: "Internal server error" },

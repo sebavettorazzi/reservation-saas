@@ -22,6 +22,11 @@ type Court = StaffMember & { schedules: CourtSchedule[] };
 type DashboardTab = "appointments" | "settings";
 
 const WEEKDAYS = ["Dom", "Lun", "Mar", "Mie", "Jue", "Vie", "Sab"];
+const STATUS_LABELS = {
+  PENDING: "Pendiente",
+  CONFIRMED: "Confirmado",
+  CANCELLED: "Cancelado",
+} as const;
 
 type ServiceSummary = {
   id: string;
@@ -56,7 +61,7 @@ type Appointment = {
   id: string;
   startTime: string;
   endTime: string;
-  status: string;
+  status: "PENDING" | "CONFIRMED" | "CANCELLED";
   customer: {
     id: string;
     name: string;
@@ -71,6 +76,8 @@ type Appointment = {
   };
   staff: StaffMember | null;
 };
+
+type AppointmentStatusFilter = "ALL" | Appointment["status"];
 
 function toInputDate(date: Date) {
   return date.toLocaleDateString("en-CA", {
@@ -105,6 +112,15 @@ function formatDate(value: string) {
 
 function formatInputDate(value: string) {
   return formatDate(`${value}T12:00:00-03:00`);
+}
+
+function addDays(value: string, days: number) {
+  const [year, month, day] = value.split("-").map(Number);
+  const date = new Date(Date.UTC(year, month - 1, day + days, 12));
+
+  return date.toLocaleDateString("en-CA", {
+    timeZone: "America/Argentina/Cordoba",
+  });
 }
 
 function toTimeInput(minutes: number) {
@@ -142,6 +158,9 @@ export default function BusinessDashboardClient({
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [courts, setCourts] = useState<Court[]>([]);
   const [selectedDate, setSelectedDate] = useState(toInputDate(new Date()));
+  const [statusFilter, setStatusFilter] = useState<AppointmentStatusFilter>("ALL");
+  const [courtFilter, setCourtFilter] = useState("ALL");
+  const [serviceFilter, setServiceFilter] = useState("ALL");
   const [priceDrafts, setPriceDrafts] = useState<Record<string, string>>({});
   const [savingServiceId, setSavingServiceId] = useState<string | null>(null);
   const [serviceFeedback, setServiceFeedback] = useState<string | null>(null);
@@ -220,20 +239,51 @@ export default function BusinessDashboardClient({
       .catch(() => setError("No se pudieron cargar los horarios de las canchas."));
   }, [slug]);
 
-  const reservedCourts = useMemo(
-    () => new Set(appointments.map((appointment) => appointment.staff?.id).filter(Boolean)).size,
+  const activeAppointments = useMemo(
+    () => appointments.filter((appointment) => appointment.status !== "CANCELLED"),
     [appointments]
   );
 
+  const filteredAppointments = useMemo(
+    () =>
+      appointments.filter((appointment) => {
+        const matchesStatus = statusFilter === "ALL" || appointment.status === statusFilter;
+        const matchesCourt = courtFilter === "ALL" || appointment.staff?.id === courtFilter;
+        const matchesService = serviceFilter === "ALL" || appointment.service.id === serviceFilter;
+
+        return matchesStatus && matchesCourt && matchesService;
+      }),
+    [appointments, courtFilter, serviceFilter, statusFilter]
+  );
+
+  const appointmentSummary = useMemo(
+    () => ({
+      confirmed: appointments.filter((appointment) => appointment.status === "CONFIRMED").length,
+      pending: appointments.filter((appointment) => appointment.status === "PENDING").length,
+      cancelled: appointments.filter((appointment) => appointment.status === "CANCELLED").length,
+    }),
+    [appointments]
+  );
+
+  const reservedCourts = useMemo(
+    () => new Set(activeAppointments.map((appointment) => appointment.staff?.id).filter(Boolean)).size,
+    [activeAppointments]
+  );
+
   const estimatedRevenue = useMemo(
-    () => appointments.reduce((total, appointment) => total + appointment.service.price, 0),
+    () =>
+      appointments.reduce(
+        (total, appointment) =>
+          appointment.status === "CONFIRMED" ? total + appointment.service.price : total,
+        0
+      ),
     [appointments]
   );
 
   const nextAppointment = useMemo(() => {
     const now = Date.now();
-    return appointments.find((appointment) => new Date(appointment.startTime).getTime() >= now);
-  }, [appointments]);
+    return activeAppointments.find((appointment) => new Date(appointment.startTime).getTime() >= now);
+  }, [activeAppointments]);
 
   async function saveServicePrice(serviceId: string) {
     const rawPrice = priceDrafts[serviceId];
@@ -351,7 +401,13 @@ export default function BusinessDashboardClient({
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ status }),
     });
-    if (response.ok) setAppointments((current) => current.map((appointment) => appointment.id === appointmentId ? { ...appointment, status } : appointment));
+    if (response.ok) {
+      setAppointments((current) =>
+        current.map((appointment) =>
+          appointment.id === appointmentId ? { ...appointment, status } : appointment
+        )
+      );
+    }
   }
 
   if (loading) {
@@ -412,8 +468,8 @@ export default function BusinessDashboardClient({
 
         <article className={styles.statCard}>
           <span>Reservas del dia</span>
-          <strong>{appointments.length}</strong>
-          <p>{formatInputDate(selectedDate)}</p>
+          <strong>{activeAppointments.length}</strong>
+          <p>{appointmentSummary.confirmed} confirmadas · {appointmentSummary.pending} pendientes</p>
         </article>
 
         <article className={styles.statCard}>
@@ -427,7 +483,7 @@ export default function BusinessDashboardClient({
         <article className={styles.statCard}>
           <span>Facturacion estimada</span>
           <strong>{formatCurrency(estimatedRevenue)}</strong>
-          <p>Calculada con las reservas confirmadas del dia.</p>
+          <p>No incluye turnos cancelados ni pendientes.</p>
         </article>
       </section>
 
@@ -454,8 +510,67 @@ export default function BusinessDashboardClient({
             <div>
               <p className={styles.panelEyebrow}>Agenda</p>
               <h2>Reservas del dia</h2>
+              <span className={styles.subtle}>{formatInputDate(selectedDate)}</span>
             </div>
             {loadingAppointments && <span className={styles.subtle}>Actualizando...</span>}
+          </div>
+
+          <div className={styles.appointmentToolbar}>
+            <div className={styles.quickDates} aria-label="Navegacion de fechas">
+              <button type="button" onClick={() => setSelectedDate(addDays(selectedDate, -1))}>
+                Anterior
+              </button>
+              <button type="button" onClick={() => setSelectedDate(toInputDate(new Date()))}>
+                Hoy
+              </button>
+              <button type="button" onClick={() => setSelectedDate(addDays(selectedDate, 1))}>
+                Siguiente
+              </button>
+            </div>
+
+            <label>
+              <span>Estado</span>
+              <select
+                value={statusFilter}
+                onChange={(event) => setStatusFilter(event.target.value as AppointmentStatusFilter)}
+              >
+                <option value="ALL">Todos</option>
+                <option value="CONFIRMED">Confirmados</option>
+                <option value="PENDING">Pendientes</option>
+                <option value="CANCELLED">Cancelados</option>
+              </select>
+            </label>
+
+            <label>
+              <span>Cancha</span>
+              <select value={courtFilter} onChange={(event) => setCourtFilter(event.target.value)}>
+                <option value="ALL">Todas</option>
+                {business.staff.map((staff) => (
+                  <option key={staff.id} value={staff.id}>
+                    {staff.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label>
+              <span>Servicio</span>
+              <select value={serviceFilter} onChange={(event) => setServiceFilter(event.target.value)}>
+                <option value="ALL">Todos</option>
+                {business.services.map((service) => (
+                  <option key={service.id} value={service.id}>
+                    {service.name}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+
+          <div className={styles.statusStrip}>
+            <span>Confirmadas: {appointmentSummary.confirmed}</span>
+            <span>Pendientes: {appointmentSummary.pending}</span>
+            <span>Canceladas: {appointmentSummary.cancelled}</span>
+            <span>Mostrando: {filteredAppointments.length}</span>
           </div>
 
           {nextAppointment ? (
@@ -478,16 +593,26 @@ export default function BusinessDashboardClient({
           )}
 
           <div className={styles.reservationList}>
-            {appointments.length > 0 ? (
-              appointments.map((appointment) => (
-                <article key={appointment.id} className={styles.reservationCard}>
+            {filteredAppointments.length > 0 ? (
+              filteredAppointments.map((appointment) => (
+                <article
+                  key={appointment.id}
+                  className={`${styles.reservationCard} ${
+                    appointment.status === "CANCELLED" ? styles.reservationCardCancelled : ""
+                  }`}
+                >
                   <div className={styles.reservationTime}>
                     <strong>{formatTime(appointment.startTime)}</strong>
                     <span>{formatTime(appointment.endTime)}</span>
                   </div>
 
                   <div className={styles.reservationBody}>
-                    <h3>{appointment.staff?.name ?? "Cancha por definir"}</h3>
+                    <div className={styles.reservationTitleRow}>
+                      <h3>{appointment.staff?.name ?? "Cancha por definir"}</h3>
+                      <span className={`${styles.statusBadge} ${styles[`status${appointment.status}`]}`}>
+                        {STATUS_LABELS[appointment.status]}
+                      </span>
+                    </div>
                     <p>{appointment.service.name}</p>
                     <div className={styles.metaRow}>
                       <span>{appointment.customer.name}</span>
@@ -503,7 +628,6 @@ export default function BusinessDashboardClient({
                   <div className={styles.contactCard}>
                     <span>Contacto</span>
                     <strong>{appointment.customer.name}</strong>
-                    <p>{appointment.customer.email ?? "Sin email"}</p>
                     <p>{appointment.customer.phone ?? "Sin telefono"}</p>
                     {appointment.status !== "CONFIRMED" && appointment.status !== "CANCELLED" && (
                       <button type="button" className={styles.saveButton} onClick={() => updateAppointmentStatus(appointment.id, "CONFIRMED")}>Confirmar</button>
@@ -516,8 +640,8 @@ export default function BusinessDashboardClient({
               ))
             ) : (
               <div className={styles.emptyState}>
-                <h3>Sin reservas para esta fecha</h3>
-                <p>Puedes usar esta vista para controlar turnos, clientes y ocupacion.</p>
+                <h3>Sin reservas para estos filtros</h3>
+                <p>Cambia la fecha, cancha, servicio o estado para ampliar la busqueda.</p>
               </div>
             )}
           </div>
