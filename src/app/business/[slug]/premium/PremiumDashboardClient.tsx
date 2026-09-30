@@ -44,6 +44,11 @@ type PremiumPayload = {
     };
   };
   premiumUnlocked: boolean;
+  period?: {
+    start: string;
+    end: string;
+    months: number;
+  };
   metrics: PremiumMetric | null;
   revenueByService: Array<{
     serviceId: string;
@@ -122,9 +127,33 @@ function toMonthInput(date: Date) {
   return date.toISOString().slice(0, 7);
 }
 
-async function fetchPremiumDashboard(slug: string, selectedMonth: string) {
+function shiftMonth(monthValue: string, offset: number) {
+  const [year, month] = monthValue.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1 + offset, 1, 12)).toISOString().slice(0, 7);
+}
+
+function formatMonthLabel(monthValue: string) {
+  return new Date(monthToIsoDate(monthValue)).toLocaleDateString("es-AR", {
+    month: "short",
+    year: "numeric",
+    timeZone: "UTC",
+  });
+}
+
+function formatPeriodLabel(selectedMonth: string, months: number) {
+  if (months <= 1) {
+    return formatMonthLabel(selectedMonth);
+  }
+
+  return `${formatMonthLabel(shiftMonth(selectedMonth, 1 - months))} - ${formatMonthLabel(
+    selectedMonth
+  )}`;
+}
+
+async function fetchPremiumDashboard(slug: string, selectedMonth: string, selectedMonths: number) {
   const params = new URLSearchParams({
-    date: monthToIsoDate(selectedMonth),
+    month: selectedMonth,
+    months: String(selectedMonths),
   });
 
   const response = await fetch(
@@ -140,6 +169,7 @@ async function fetchPremiumDashboard(slug: string, selectedMonth: string) {
 
 function PremiumAnalyticsContent({ slug, view }: { slug: string; view: "analytics" | "finances" }) {
   const [selectedMonth, setSelectedMonth] = useState(toMonthInput(new Date()));
+  const [selectedMonths, setSelectedMonths] = useState(1);
   const [dashboard, setDashboard] = useState<PremiumPayload | null>(null);
   const [expenseForm, setExpenseForm] = useState<ExpenseForm>(EMPTY_EXPENSE_FORM);
   const [loading, setLoading] = useState(true);
@@ -154,7 +184,7 @@ function PremiumAnalyticsContent({ slug, view }: { slug: string; view: "analytic
         setLoading(true);
         setError(null);
 
-        const payload = await fetchPremiumDashboard(slug, selectedMonth);
+        const payload = await fetchPremiumDashboard(slug, selectedMonth, selectedMonths);
         setDashboard(payload);
       } catch (loadError) {
         console.error(loadError);
@@ -165,7 +195,7 @@ function PremiumAnalyticsContent({ slug, view }: { slug: string; view: "analytic
     }
 
     loadDashboard();
-  }, [selectedMonth, slug]);
+  }, [selectedMonth, selectedMonths, slug]);
 
   const maxServiceRevenue = useMemo(
     () =>
@@ -235,7 +265,7 @@ function PremiumAnalyticsContent({ slug, view }: { slug: string; view: "analytic
         expenseDate: expenseForm.expenseDate,
       });
       setFeedback("Gasto registrado correctamente.");
-      const refreshedPayload = await fetchPremiumDashboard(slug, selectedMonth);
+      const refreshedPayload = await fetchPremiumDashboard(slug, selectedMonth, selectedMonths);
       setDashboard(refreshedPayload);
     } catch (submitError) {
       console.error(submitError);
@@ -289,6 +319,7 @@ function PremiumAnalyticsContent({ slug, view }: { slug: string; view: "analytic
   }
 
   const metrics = dashboard.metrics;
+  const periodLabel = formatPeriodLabel(selectedMonth, selectedMonths);
 
   return (
     <div className={styles.page}>
@@ -298,19 +329,35 @@ function PremiumAnalyticsContent({ slug, view }: { slug: string; view: "analytic
           <h1>{dashboard.business.name}</h1>
           <p className={styles.lead}>
             {view === "analytics"
-              ? "Rendimiento operativo, ingresos y actividad del complejo."
-              : "Registro de egresos, categorias y balance del periodo."}
+              ? `Rendimiento operativo, ingresos y actividad del complejo. Periodo: ${periodLabel}.`
+              : `Registro de egresos, categorias y balance. Periodo: ${periodLabel}.`}
           </p>
         </div>
 
         <div className={styles.heroActions}>
           <label className={styles.monthPicker}>
-            <span>Mes</span>
+            <span>Hasta</span>
             <input
               type="month"
               value={selectedMonth}
-              onChange={(event) => setSelectedMonth(event.target.value)}
+              onChange={(event) => {
+                if (event.target.value) {
+                  setSelectedMonth(event.target.value);
+                }
+              }}
             />
+          </label>
+          <label className={styles.monthPicker}>
+            <span>Periodo</span>
+            <select
+              value={selectedMonths}
+              onChange={(event) => setSelectedMonths(Number(event.target.value))}
+            >
+              <option value={1}>1 mes</option>
+              <option value={3}>3 meses</option>
+              <option value={6}>6 meses</option>
+              <option value={12}>12 meses</option>
+            </select>
           </label>
           <Link
             href={`/business/${dashboard.business.slug ?? slug}/dashboard`}
@@ -325,7 +372,7 @@ function PremiumAnalyticsContent({ slug, view }: { slug: string; view: "analytic
         {view === "analytics" ? (
           <>
             <article className={styles.statCard}>
-              <span>Ingresos del mes</span>
+              <span>Ingresos del periodo</span>
               <strong>{formatCurrency(metrics.monthlyRevenue)}</strong>
               <p>{metrics.reservationsThisMonth} reservas confirmadas.</p>
             </article>
@@ -345,19 +392,19 @@ function PremiumAnalyticsContent({ slug, view }: { slug: string; view: "analytic
             <article className={styles.statCard}>
               <span>Uso promedio</span>
               <strong>{metrics.averageReservationsPerCourt.toFixed(1)}</strong>
-              <p>Reservas promedio por cancha.</p>
+              <p>Reservas promedio por cancha en el periodo.</p>
             </article>
           </>
         ) : (
           <>
             <article className={styles.statCard}>
-              <span>Gastos del mes</span>
+              <span>Gastos del periodo</span>
               <strong>{formatCurrency(metrics.monthlyExpenseTotal)}</strong>
               <p>{dashboard.recentExpenses.length} gastos recientes registrados.</p>
             </article>
 
             <article className={styles.statCard}>
-              <span>Neto del mes</span>
+              <span>Neto del periodo</span>
               <strong>{formatCurrency(metrics.netRevenue)}</strong>
               <p>Ingresos menos egresos del periodo.</p>
             </article>
@@ -441,7 +488,7 @@ function PremiumAnalyticsContent({ slug, view }: { slug: string; view: "analytic
                       </div>
                     ))
                   ) : (
-                    <p className={styles.subtle}>Aun no hay ingresos registrados en este mes.</p>
+                    <p className={styles.subtle}>Aun no hay ingresos registrados en este periodo.</p>
                   )}
                 </div>
               </section>
@@ -675,7 +722,7 @@ function PremiumAnalyticsContent({ slug, view }: { slug: string; view: "analytic
                       </div>
                     ))
                   ) : (
-                    <p className={styles.subtle}>Todavia no hay gastos registrados en este mes.</p>
+                    <p className={styles.subtle}>Todavia no hay gastos registrados en este periodo.</p>
                   )}
                 </div>
               </div>

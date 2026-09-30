@@ -1,44 +1,34 @@
 import { prisma } from "@/lib/prisma";
 import type { CreateExpenseInput } from "@/contracts/expense.contract";
 
-function getDayBoundsUTC(date: Date) {
-  const start = new Date(
-    Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate(),
-      0,
-      0,
-      0,
-      0
-    )
-  );
+const ARGENTINA_UTC_OFFSET_HOURS = 3;
 
-  const end = new Date(
-    Date.UTC(
-      date.getUTCFullYear(),
-      date.getUTCMonth(),
-      date.getUTCDate(),
-      23,
-      59,
-      59,
-      999
-    )
-  );
+function getArgentinaDayBoundsUTC(date: Date) {
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: "America/Argentina/Cordoba",
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+  const [year, month, day] = formatter.format(date).split("-").map(Number);
+
+  const start = new Date(Date.UTC(year, month - 1, day, ARGENTINA_UTC_OFFSET_HOURS));
+  const end = new Date(Date.UTC(year, month - 1, day + 1, ARGENTINA_UTC_OFFSET_HOURS) - 1);
 
   return { start, end };
 }
 
-function getMonthBoundsUTC(date: Date) {
+function getArgentinaPeriodBoundsUTC(selectedMonth: string, months: number) {
+  const [year, month] = selectedMonth.split("-").map(Number);
+  const safeMonths = Math.min(Math.max(Math.trunc(months), 1), 12);
   const start = new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth(), 1, 0, 0, 0, 0)
+    Date.UTC(year, month - safeMonths, 1, ARGENTINA_UTC_OFFSET_HOURS)
   );
-
   const end = new Date(
-    Date.UTC(date.getUTCFullYear(), date.getUTCMonth() + 1, 0, 23, 59, 59, 999)
+    Date.UTC(year, month, 1, ARGENTINA_UTC_OFFSET_HOURS) - 1
   );
 
-  return { start, end };
+  return { start, end, months: safeMonths };
 }
 
 function sumAmounts(values: number[]) {
@@ -61,7 +51,8 @@ type BusinessBase = {
 
 export async function getBusinessPremiumDashboardBySlug(
   slug: string,
-  referenceDate: Date
+  selectedMonth: string,
+  months = 1
 ) {
   const business = await prisma.business.findUnique({
     where: { slug },
@@ -99,17 +90,21 @@ export async function getBusinessPremiumDashboardBySlug(
     };
   }
 
-  const { start: monthStart, end: monthEnd } = getMonthBoundsUTC(referenceDate);
-  const { start: todayStart, end: todayEnd } = getDayBoundsUTC(referenceDate);
+  const {
+    start: periodStart,
+    end: periodEnd,
+    months: selectedMonths,
+  } = getArgentinaPeriodBoundsUTC(selectedMonth, months);
+  const { start: todayStart, end: todayEnd } = getArgentinaDayBoundsUTC(new Date());
 
-  const [monthlyAppointments, monthlyExpenses, recentNotifications] = await Promise.all([
+  const [periodAppointments, periodExpenses, recentNotifications] = await Promise.all([
     prisma.appointment.findMany({
       where: {
         businessId: business.id,
         status: "CONFIRMED",
         startTime: {
-          gte: monthStart,
-          lte: monthEnd,
+          gte: periodStart,
+          lte: periodEnd,
         },
       },
       include: {
@@ -132,12 +127,11 @@ export async function getBusinessPremiumDashboardBySlug(
       where: {
         businessId: business.id,
         expenseDate: {
-          gte: monthStart,
-          lte: monthEnd,
+          gte: periodStart,
+          lte: periodEnd,
         },
       },
       orderBy: [{ expenseDate: "desc" }, { createdAt: "desc" }],
-      take: 12,
     }),
     prisma.notification.findMany({
       where: { businessId: business.id },
@@ -155,29 +149,29 @@ export async function getBusinessPremiumDashboardBySlug(
     }),
   ]);
 
-  const todayAppointments = monthlyAppointments.filter((appointment) => {
+  const todayAppointments = periodAppointments.filter((appointment) => {
     const startTime = appointment.startTime.getTime();
     return startTime >= todayStart.getTime() && startTime <= todayEnd.getTime();
   });
 
-  const todayExpenses = monthlyExpenses.filter((expense) => {
+  const todayExpenses = periodExpenses.filter((expense) => {
     const expenseTime = expense.expenseDate.getTime();
     return expenseTime >= todayStart.getTime() && expenseTime <= todayEnd.getTime();
   });
 
   const monthlyRevenue = sumAmounts(
-    monthlyAppointments.map((appointment) => appointment.priceSnapshot)
+    periodAppointments.map((appointment) => appointment.priceSnapshot)
   );
   const todayRevenue = sumAmounts(
     todayAppointments.map((appointment) => appointment.priceSnapshot)
   );
   const monthlyExpenseTotal = sumAmounts(
-    monthlyExpenses.map((expense) => expense.amount)
+    periodExpenses.map((expense) => expense.amount)
   );
   const todayExpenseTotal = sumAmounts(todayExpenses.map((expense) => expense.amount));
   const netRevenue = monthlyRevenue - monthlyExpenseTotal;
   const averageTicket =
-    monthlyAppointments.length > 0 ? monthlyRevenue / monthlyAppointments.length : 0;
+    periodAppointments.length > 0 ? monthlyRevenue / periodAppointments.length : 0;
 
   const revenueByServiceMap = new Map<
     string,
@@ -192,7 +186,7 @@ export async function getBusinessPremiumDashboardBySlug(
     { category: string; total: number; count: number }
   >();
 
-  for (const appointment of monthlyAppointments) {
+  for (const appointment of periodAppointments) {
     const serviceEntry = revenueByServiceMap.get(appointment.service.id) ?? {
       serviceId: appointment.service.id,
       name: appointment.service.name,
@@ -218,7 +212,7 @@ export async function getBusinessPremiumDashboardBySlug(
     }
   }
 
-  for (const expense of monthlyExpenses) {
+  for (const expense of periodExpenses) {
     const category = expense.category?.trim() || "General";
     const expenseEntry = expenseByCategoryMap.get(category) ?? {
       category,
@@ -246,6 +240,11 @@ export async function getBusinessPremiumDashboardBySlug(
   return {
     business,
     premiumUnlocked: true,
+    period: {
+      start: periodStart,
+      end: periodEnd,
+      months: selectedMonths,
+    },
     metrics: {
       monthlyRevenue,
       todayRevenue,
@@ -253,16 +252,16 @@ export async function getBusinessPremiumDashboardBySlug(
       todayExpenseTotal,
       netRevenue,
       averageTicket,
-      reservationsThisMonth: monthlyAppointments.length,
+      reservationsThisMonth: periodAppointments.length,
       reservationsToday: todayAppointments.length,
       averageReservationsPerCourt:
-        business._count.staff > 0 ? monthlyAppointments.length / business._count.staff : 0,
+        business._count.staff > 0 ? periodAppointments.length / business._count.staff : 0,
       topService: revenueByService[0] ?? null,
       topCourt: revenueByCourt[0] ?? null,
     },
     revenueByService,
     revenueByCourt,
-    recentExpenses: monthlyExpenses,
+    recentExpenses: periodExpenses.slice(0, 12),
     expenseByCategory,
     recentNotifications,
   };

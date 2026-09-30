@@ -140,6 +140,7 @@
 }
 
 .monthPicker input,
+.monthPicker select,
 .primaryLink,
 .secondaryLink,
 .primaryButton {
@@ -148,10 +149,18 @@
   border-radius: 999px;
 }
 
-.monthPicker input {
+.monthPicker input,
+.monthPicker select {
   border: 1px solid rgba(255, 255, 255, 0.08);
   background: rgba(255, 255, 255, 0.04);
   color: #fff7ed;
+  outline: none;
+}
+
+.monthPicker select {
+  min-width: 132px;
+  appearance: none;
+  cursor: pointer;
 }
 
 .primaryLink,
@@ -367,7 +376,8 @@
 
 .field input:focus,
 .field textarea:focus,
-.monthPicker input:focus {
+.monthPicker input:focus,
+.monthPicker select:focus {
   border-color: rgba(251, 146, 60, 0.36);
   box-shadow: 0 0 0 4px rgba(251, 146, 60, 0.12);
 }
