@@ -18,6 +18,8 @@ Crear las variables en el panel del hosting. No subir secretos reales al reposit
 | --- | --- |
 | `DATABASE_URL` | Conexion PostgreSQL de produccion. |
 | `NEXT_PUBLIC_APP_URL` | URL publica de la app. |
+| `DEMO_SALON_EMAIL` | Email demo/admin inicial para barberia, si se usa seed. |
+| `DEMO_SALON_PASSWORD` | Password demo/admin inicial para barberia. Cambiar siempre fuera del entorno local. |
 | `DEMO_ADMIN_EMAIL` | Email demo/admin inicial, si se usa seed o reset demo. |
 | `DEMO_ADMIN_PASSWORD` | Password demo/admin inicial. Cambiar siempre fuera del entorno local. |
 
@@ -83,7 +85,7 @@ En VPS real conviene usar un process manager como PM2 o un servicio systemd para
 
 ## Seed y datos demo
 
-`npm run db:seed` carga datos demo. Usa `DEMO_ADMIN_EMAIL` y `DEMO_ADMIN_PASSWORD` para la cuenta del complejo 2 de Abril. Usarlo solo en entornos de prueba o demo controlada.
+`npm run db:seed` carga datos demo. Usa `DEMO_ADMIN_EMAIL`, `DEMO_ADMIN_PASSWORD`, `DEMO_SALON_EMAIL` y `DEMO_SALON_PASSWORD` para las cuentas demo. Usarlo solo en entornos de prueba o demo controlada.
 
 En produccion real:
 

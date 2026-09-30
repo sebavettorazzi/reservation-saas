@@ -9,6 +9,8 @@ const adapter = new PrismaPg({
 });
 
 const prisma = new PrismaClient({ adapter });
+const DEMO_SALON_EMAIL = process.env.DEMO_SALON_EMAIL ?? "owner@test.com";
+const DEMO_SALON_PASSWORD = process.env.DEMO_SALON_PASSWORD ?? "test1234";
 const DEMO_ADMIN_EMAIL = process.env.DEMO_ADMIN_EMAIL ?? "dosdeabril@test.com";
 const DEMO_ADMIN_PASSWORD = process.env.DEMO_ADMIN_PASSWORD ?? "test1234";
 
@@ -69,16 +71,16 @@ async function resetBusinessData(businessId: string) {
 
 async function seedSalon() {
   const owner = await prisma.user.upsert({
-    where: { email: "owner@test.com" },
+    where: { email: DEMO_SALON_EMAIL },
     update: {
       name: "Salon Owner",
-      passwordHash: hashPassword("test1234"),
+      passwordHash: hashPassword(DEMO_SALON_PASSWORD),
     },
     create: {
       id: randomUUID(),
-      email: "owner@test.com",
+      email: DEMO_SALON_EMAIL,
       name: "Salon Owner",
-      passwordHash: hashPassword("test1234"),
+      passwordHash: hashPassword(DEMO_SALON_PASSWORD),
     },
   });
 

@@ -1,27 +1,100 @@
 .page {
+  position: relative;
   display: grid;
   min-height: 100vh;
   place-items: center;
   padding: 24px;
-  background: #000;
+  overflow: hidden;
+  background:
+    radial-gradient(circle at 50% -10%, rgba(134, 239, 172, 0.14), transparent 28%),
+    linear-gradient(180deg, #000 0%, #06110c 100%);
+}
+
+.page::before {
+  content: "";
+  position: absolute;
+  top: 48px;
+  left: 50%;
+  width: min(132px, 40vw);
+  aspect-ratio: 292 / 173;
+  background: url("/brand/malvinas-silhouette.png") center / contain no-repeat;
+  opacity: 0.8;
+  transform: translateX(-50%);
 }
 
 .panel {
+  position: relative;
   display: grid;
   width: min(100%, 380px);
   gap: 18px;
-  padding: 28px;
+  margin-top: 76px;
+  padding: 30px;
   border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: 8px;
-  background: #0e1713;
+  border-radius: 28px;
+  background: rgba(14, 23, 19, 0.78);
+  box-shadow:
+    0 30px 90px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(24px) saturate(140%);
 }
 
 .panel > p,
-.panel h1 { margin: 0; }
-.panel > p { color: #9be7c3; font-weight: 700; }
-.panel h1 { font-size: 30px; }
-.panel label { display: grid; gap: 7px; color: #d9e7df; }
-.panel input { min-height: 46px; padding: 0 12px; border: 1px solid #496457; border-radius: 6px; color: #fff; background: #071009; }
-.panel button { min-height: 48px; border: 0; border-radius: 6px; color: #042412; background: #8cf0b6; font-weight: 800; cursor: pointer; }
-.panel button:disabled { opacity: 0.6; cursor: wait; }
-.error { padding: 10px; border-radius: 6px; color: #fecaca; background: rgba(185, 28, 28, 0.2); }
+.panel h1 {
+  margin: 0;
+}
+
+.panel > p {
+  color: #9be7c3;
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+}
+
+.panel h1 {
+  font-size: 32px;
+  line-height: 1.05;
+}
+
+.panel label {
+  display: grid;
+  gap: 7px;
+  color: rgba(217, 231, 223, 0.84);
+}
+
+.panel input {
+  min-height: 48px;
+  padding: 0 14px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  color: #fff;
+  background: rgba(255, 255, 255, 0.05);
+  outline: none;
+}
+
+.panel input:focus {
+  border-color: rgba(140, 240, 182, 0.45);
+  box-shadow: 0 0 0 4px rgba(140, 240, 182, 0.12);
+}
+
+.panel button {
+  min-height: 50px;
+  border: 0;
+  border-radius: 999px;
+  color: #042412;
+  background: #8cf0b6;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.panel button:disabled {
+  opacity: 0.6;
+  cursor: wait;
+}
+
+.error {
+  padding: 12px;
+  border-radius: 16px;
+  color: #fecaca;
+  background: rgba(185, 28, 28, 0.2);
+}
